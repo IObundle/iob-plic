@@ -1,0 +1,3 @@
+[submodule "submodules/PLIC_CORE"]
+	path = submodules/PLIC_CORE
+	url = git@github.com:pulp-platform/rv_plic.git
