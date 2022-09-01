@@ -57,18 +57,18 @@ module iob_plic #(
   //
 
   //IOb-bus write action
-  wire                     iob_we,
+  wire                     iob_we;
   wire                     iob_re;
 
   //Decoded registers
-  wire [SOURCES      -1:0] el,
+  wire [SOURCES      -1:0] el;
   wire [SOURCES      -1:0] ip;
   wire [PRIORITY_BITS-1:0] p  [SOURCES];
   wire [SOURCES      -1:0] ie [TARGETS];
   wire [PRIORITY_BITS-1:0] th [TARGETS];
   wire [SOURCES_BITS -1:0] id [TARGETS];
 
-  wire [TARGETS      -1:0] claim,
+  wire [TARGETS      -1:0] claim;
   wire [TARGETS      -1:0] complete;
 
 
@@ -85,8 +85,8 @@ module iob_plic #(
 
 
   /** APB Read/Write */
-  assign iob_re = valid & ~wstrb;
-  assign iob_we = valid &  wstrb;
+  assign iob_re = valid & ~{|wstrb};
+  assign iob_we = valid &  {|wstrb};
 
 
   /** Hookup Dynamic Register block
