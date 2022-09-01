@@ -64,6 +64,7 @@
 //   Synthesizable (y/n) : Yes
 //   Other               :                                         
 // -FHDR-------------------------------------------------------------
+`timescale 1ns / 1ps
 
 module plic_gateway #(
   parameter MAX_PENDING_COUNT = 16

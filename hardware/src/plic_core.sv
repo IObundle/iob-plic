@@ -65,6 +65,7 @@
 //   Synthesizable (y/n) : Yes
 //   Other               :                                         
 // -FHDR-------------------------------------------------------------
+`timescale 1ns / 1ps
 
 module plic_core #(
   parameter SOURCES           = 8, //Number of interrupt sources

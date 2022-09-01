@@ -65,6 +65,7 @@
 //   Other               : End-points (registers) are in the
 //                         plic_target module
 // -FHDR-------------------------------------------------------------
+`timescale 1ns / 1ps
 
 module plic_cell #(
   parameter ID         = 1,

@@ -69,6 +69,7 @@
 //   Synthesizable (y/n) : Yes
 //   Other               :                                         
 // -FHDR-------------------------------------------------------------
+`timescale 1ns / 1ps
 
 module plic_dynamic_registers #(
   //Bus Interface Parameters
