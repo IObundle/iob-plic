@@ -1,17 +1,23 @@
 //instantiate core in system
 
    //
-   // CLINT
+   // PLIC
    //
 
-   iob_plic plic
-     (
+   iob_plic #(
+      .TARGETS(`N_CORES)   //Number of interrupt targets
+    ) plic
+    (
       .clk     (clk),
       .rst     (reset),
 
-      .plic_req  (slaves_req),
-      .plic_resp (slaves_resp),
+      .valid   (slaves_req[`valid(`PLIC)]),
+      .address (slaves_req[`address(`PLIC, `iob_plic_ADDR_W)]),
+      .wdata   (slaves_req[`wdata(`PLIC)]),
+      .wstrb   (slaves_req[`wstrb(`PLIC)]),
+      .rdata   (slaves_resp[`rdata(`PLIC)]),
+      .ready   (slaves_resp[`ready(`PLIC)]),
 
-      .meip               (externalInterrupt),
-      .externalInterrupts (8'h00)
+      .src     ({{SOURCES-1}1'b0}),
+      .irq     (externalInterrupt)
       );

@@ -5,7 +5,7 @@ HW_MODULES+=PLIC
 
 #HARDWARE PATHS
 PLIC_INC_DIR:=$(PLIC_HW_DIR)/include
-PLIC_SRC_DIR:=$(PLIC_HW_DIR)/src $(PLIC_DIR)/submodules/PLIC_CORE/rtl
+PLIC_SRC_DIR:=$(PLIC_HW_DIR)/src
 
 #INCLUDES
 INCLUDE+=$(incdir). $(incdir)$(PLIC_INC_DIR)
