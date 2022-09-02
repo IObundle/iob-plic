@@ -80,7 +80,13 @@ module iob_plic #(
 
   /** IOb-bus accesses */
   //The core supports zero-wait state accesses on all transfers.
-  assign ready  = 1'b1;  //always ready
+  always @(posedge clk, posedge rst) begin
+      if (rst) begin
+        ready <= 1'b0;
+      end else begin
+        ready <= valid;
+      end
+   end  //always ready after a valid
   //assign err = 1'b0;  //Never an error; Not needed??
 
 
