@@ -19,6 +19,6 @@
       .rdata   (slaves_resp[`rdata(`PLIC)]),
       .ready   (slaves_resp[`ready(`PLIC)]),
 
-      .src     ({uartInterrupt, {31{1'b0}}}),
+      .src     ({1'b0, uartInterrupt, {30{1'b0}}}),
       .irq     (externalInterrupt)
       );
