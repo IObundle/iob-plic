@@ -13,7 +13,7 @@
       .rst     (cpu_reset),
 
       .valid   (slaves_req[`valid(`PLIC)]),
-      .address (slaves_req[`address(`PLIC, `iob_plic_ADDR_W)]),
+      .address (slaves_req[`address(`PLIC, 16)]),
       .wdata   (slaves_req[`wdata(`PLIC)]),
       .wstrb   (slaves_req[`wstrb(`PLIC)]),
       .rdata   (slaves_resp[`rdata(`PLIC)]),

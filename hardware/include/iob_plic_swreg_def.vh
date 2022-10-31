@@ -1,1 +1,0 @@
-`define iob_plic_ADDR_W 16
