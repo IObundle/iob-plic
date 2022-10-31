@@ -403,13 +403,6 @@ module plic_dynamic_registers #(
 
   //Display IP configuration; register map
   task display_configuration;
-    $display ("------------------------------------------------------------");
-    $display (" ,------.                    ,--.                ,--.       ");
-    $display (" |  .--. ' ,---.  ,--,--.    |  |    ,---. ,---. `--' ,---. ");
-    $display (" |  '--'.'| .-. |' ,-.  |    |  |   | .-. | .-. |,--.| .--' ");
-    $display (" |  |\\  \\ ' '-' '\\ '-'  |    |  '--.' '-' ' '-' ||  |\\ `--. ");
-    $display (" `--' '--' `---'  `--`--'    `-----' `---' `-   /`--' `---' ");
-    $display ("                                           `---'            ");
     $display (" RISC-V Platform Level Interrupt Controller                 ");
 
     $display ("- Configuration Report -------------------------------------");
