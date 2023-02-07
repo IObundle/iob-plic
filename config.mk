@@ -15,7 +15,6 @@ TOP_MODULE:=iob_plic
 #CPU ARCHITECTURE
 DATA_W ?=32
 ADDR_W ?=16
-N_CORES ?=1
 
 #PLIC DIRECTORY ON REMOTE MACHINES
 REMOTE_PLIC_DIR ?=sandbox/iob_plic
@@ -23,7 +22,7 @@ REMOTE_PLIC_DIR ?=sandbox/iob_plic
 #SIMULATION
 #default simulator running locally or remotely
 #check the respective Makefile in hardware/simulation/$(SIMULATOR) for specific settings
-SIMULATOR ?=icarus
+SIMULATOR ?=verilator
 
 ####################################################################
 # DERIVED FROM PRIMARY PARAMETERS: DO NOT CHANGE BELOW THIS POINT
@@ -36,10 +35,6 @@ PLIC_SW_DIR=$(PLIC_DIR)/software
 PLIC_HW_DIR=$(PLIC_DIR)/hardware
 PLIC_SIM_DIR=$(PLIC_HW_DIR)/simulation/$(SIMULATOR)
 
-
-#default baud and system clock freq
-BAUD ?= 5000000
-FREQ ?= 100000000
 
 #RULES
 plic_gen_clean:

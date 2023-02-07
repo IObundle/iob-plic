@@ -37,8 +37,8 @@ module iob_plic_top #(
         .TARGETS          (TARGETS),
         .PRIORITIES       (8),
         .MAX_PENDING_COUNT(8),
-        .HAS_THRESHOLD    (0),
-        .HAS_CONFIG_REG   (0)
+        .HAS_THRESHOLD    (1),
+        .HAS_CONFIG_REG   (1)
         )
     plic_ut (
         .clk(),
