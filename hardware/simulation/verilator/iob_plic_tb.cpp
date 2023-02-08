@@ -43,7 +43,7 @@ vluint64_t main_time = 0;
 VerilatedVcdC* tfp = NULL;
 Viob_plic_top* dut = NULL;
 
-void write_zero_to_regs();
+void init_set_regs();
 void test_simple_target_source();
 
 double sc_time_stamp(){
@@ -56,9 +56,6 @@ void Timer(unsigned int ns){
       dut->clk = !(dut->clk);
     }
     dut->eval();
-#ifdef VCD
-    tfp->dump(main_time);
-#endif
     main_time += 1;
   }
 }
@@ -89,7 +86,6 @@ int main(int argc, char **argv, char **env){
   tfp = new VerilatedVcdC;
 
   dut->trace(tfp, 1);
-  tfp->open("iob_plic.vcd");
 #endif
   main_time = 0;
 
@@ -102,10 +98,6 @@ int main(int argc, char **argv, char **env){
   dut->wstrb = 0;
   dut->srip = 0;
 
-  dut->eval();
-#ifdef VCD
-  tfp->dump(main_time);
-#endif
   printf("\nTestbench started!\n\n");
 
   // Reset sequence
@@ -114,7 +106,7 @@ int main(int argc, char **argv, char **env){
   Timer(CLK_PERIOD);
   dut->rst = !(dut->rst);
 
-  //write_zero_to_regs();
+  init_set_regs();
   test_simple_target_source();
 
   Timer(CLK_PERIOD);
@@ -134,7 +126,7 @@ void test_simple_target_source(){
     printf("\nWIP\n");
 }
 
-void write_zero_to_regs(){
+void init_set_regs(){
     int err = 0;
     int i = 0;
     int el_base_address, //Edge/Level registers base address

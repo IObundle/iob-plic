@@ -15,4 +15,6 @@ sim-run: sim-build
 sim-clean:
 	make -C $(PLIC_SIM_DIR) clean
 
+sim: sim-run sim-clean
+
 .PHONY: sim-build sim-run sim-clean

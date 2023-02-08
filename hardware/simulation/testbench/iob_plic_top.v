@@ -22,7 +22,7 @@ module iob_plic_top #(
 
 `ifdef VCD
     initial begin
-        $dumpfile("iob_clint.vcd");
+        $dumpfile("iob_plic.vcd");
         $dumpvars();
     end
 `endif
@@ -41,18 +41,18 @@ module iob_plic_top #(
         .HAS_CONFIG_REG   (1)
         )
     plic_ut (
-        .clk(),
-        .rst(),
+        .clk(clk),
+        .rst(rst),
 
-        .valid(),
-        .address(),
-        .wdata(),
-        .wstrb(),
-        .rdata(),
-        .ready(),
+        .valid(valid),
+        .address(address),
+        .wdata(wdata),
+        .wstrb(wstrb),
+        .rdata(rdata),
+        .ready(ready),
 
-        .src(),
-        .irq()
+        .src(srip),
+        .irq(meip)
         );
 
 endmodule
