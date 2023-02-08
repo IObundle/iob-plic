@@ -17,4 +17,4 @@ sim-clean:
 
 sim: sim-run sim-clean
 
-.PHONY: sim-build sim-run sim-clean
+.PHONY: sim-build sim-run sim-clean sim

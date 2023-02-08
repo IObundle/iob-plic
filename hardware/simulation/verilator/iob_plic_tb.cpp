@@ -122,8 +122,95 @@ int main(int argc, char **argv, char **env){
 
 }
 
-void test_simple_target_source(){
-    printf("\nWIP\n");
+void test_simple_target_source(){//check if there are any interrupts pending
+    int errors = 0;
+    int err = 0;
+    int el_base_address, //Edge/Level registers base address
+        pr_base_address, //Priority registers base address
+        ie_base_address, //Interrupt Enable registers base address
+        th_base_address, //Threshold register base address
+        id_base_address; //ID registers base address
+
+    //Set base register addresses ...
+    el_base_address = CONFIG_REGS;
+    pr_base_address = el_base_address + EDGE_LEVEL_REGS;
+    ie_base_address = pr_base_address + PRIORITY_REGS;
+    th_base_address = ie_base_address + IE_REGS;
+    id_base_address = th_base_address + PTHRESHOLD_REGS;
+    
+    // Testing for Target 0 and Source 0
+    int source = 3;
+    int target = 0;
+    if (dut->meip != 0) 
+        printf("Interrupts pending\n");
+
+    //assert SRC[0]
+    dut->srip = 0x1;
+
+    //check if there are any interrupts pending
+    if (dut->meip){
+        printf("IRQ asserted (%x) while all IE disabled @%ld\n", dut->meip, main_time);
+        errors++;
+    }
+
+
+    //enable interrupt
+    //EDGE_LEVEL_REGS is used, as it holds the amount of IE-registers per target
+    err = set_inputs((ie_base_address + (target * EDGE_LEVEL_REGS) + (source / DATA_W)) * DATA_W/8, 1 << (source % DATA_W), 0xF);
+
+    //it takes 3 cycles for the interrupt to propagate
+    Timer(4*CLK_PERIOD);
+
+    //check if interrupt shows up at the expected target
+    printf("Checking Source[%d] -> IRQ[%d]...\n", source, target);
+    if (dut->meip == 1 << target)
+        printf("PASSED\n");
+    else{
+        printf("FAILED\n");
+        printf("Expected IRQ=%x, received %x @%ld\n", 1 << target, dut->meip, main_time);
+        errors++;
+    }
+
+    //check if ID is correct >> claims interrupt <<
+    err = set_inputs((id_base_address + target) * DATA_W/8, 0, 0x0);
+
+    printf("Checking ID/Claim Interrupt ...\n");
+    if (err == source+1)
+        printf("PASSED\n");
+    else{
+        printf("FAILED\n");
+        printf("Expected ID=%d, received %d @%ld\n", source+1, err, main_time);
+        errors++;
+    }
+
+    //clear source
+    dut->srip = 0x0;
+
+    Timer(3*CLK_PERIOD);
+    printf("Checking IRQ cleared ...\n");
+    if (dut->meip == 0)
+        printf("PASSED\n");
+    else{
+        printf("FAILED\n");
+        printf("Expected IRQ=0, received %d @%ld\n", dut->meip, main_time);
+        errors++;
+    }
+
+    //complete interrupt -- dummy write to ID
+    printf("Sending Interrupt Complete\n");
+    err = set_inputs((id_base_address + target) * DATA_W/8, 1 << (source % DATA_W), 0xF);
+
+    printf("Checking IRQ cleared ...\n");
+    if (dut->meip == 0)
+        printf("PASSED\n");
+    else{
+        printf("FAILED\n");
+        printf("Expected IRQ=0, received %d @%ld\n", dut->meip, main_time);
+        errors++;
+    }
+
+    //disable interrupt
+    err = set_inputs((ie_base_address + (target * EDGE_LEVEL_REGS) + (source / DATA_W)) * DATA_W/8, 0, 0xF);
 }
 
 void init_set_regs(){
