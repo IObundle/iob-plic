@@ -702,7 +702,7 @@ endgenerate
         IE       : rdata <= ie[read_register_idx / EL_REGS] >> ((read_register_idx % EL_REGS) * DATA_SIZE);
 //      THRESHOLD: if (HAS_THRESHOLD) rdata <= encode_th(read_register_idx);
         THRESHOLD: if (HAS_THRESHOLD) rdata <= th[read_register_idx];
-	ID       : rdata <= id[read_register_idx];
+	    ID       : rdata <= id[read_register_idx];
       endcase
 
 endmodule : plic_dynamic_registers
