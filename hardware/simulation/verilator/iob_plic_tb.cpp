@@ -45,6 +45,7 @@ Viob_plic_top* dut = NULL;
 
 void init_set_regs();
 int test_simple_target_source();
+int write_pr_regs();
 
 double sc_time_stamp(){
   return main_time;
@@ -241,8 +242,9 @@ void init_set_regs(){
     for (i=0; i < EDGE_LEVEL_REGS; i++)
         err = set_inputs((el_base_address+i)*DATA_W/8, 0, 0xF);
     //set priority for all sources to '1'; '0' means 'never interrupt'
+    int write_pr = write_pr_regs();
     for (i=0; i < PRIORITY_REGS; i++)
-        err = set_inputs((pr_base_address+i)*DATA_W/8, 0x11111111, 0xF);
+        err = set_inputs((pr_base_address+i)*DATA_W/8, write_pr, 0xF);
     //clear all IE
     for (i=0; i < IE_REGS; i++)
         err = set_inputs((ie_base_address+i)*DATA_W/8, 0, 0xF);
@@ -250,4 +252,14 @@ void init_set_regs(){
     for (i=0; i < PTHRESHOLD_REGS; i++)
         err = set_inputs((th_base_address+i)*DATA_W/8, 0, 0xF);
 
+}
+
+int write_pr_regs(){
+    int res = 0;
+    int i = 0;
+    for (i = 0; i < PRIORITY_FIELDS_PER_REG; i++) {
+        res = (res << 4*PRIORITY_NIBBLES) | 0x01;
+    }
+    // printf("%x -> %x", res, 0x11111111); // check if correct considering PRIORITY_FIELDS_PER_REG=8 and PRIORITY_NIBBLES=1
+    return res;
 }
