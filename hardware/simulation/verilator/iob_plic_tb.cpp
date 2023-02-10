@@ -258,7 +258,7 @@ int write_pr_regs(){
     int res = 0;
     int i = 0;
     for (i = 0; i < PRIORITY_FIELDS_PER_REG; i++) {
-        res = (res << 4*PRIORITY_NIBBLES) | 0x01;
+        res = (res << (DATA_W/8)*PRIORITY_NIBBLES) | 0x01;
     }
     // printf("%x -> %x", res, 0x11111111); // check if correct considering PRIORITY_FIELDS_PER_REG=8 and PRIORITY_NIBBLES=1
     return res;
