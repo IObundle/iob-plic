@@ -11,7 +11,7 @@
 #define DATA_W 32
 #define SOURCES 8
 #define TARGETS 2
-#define PRIORITY_BITS 8
+#define PRIORITY_BITS 3 //$clog2(PRIORITIES); PRIORITIES = 8;
 #define HAS_THRESHOLD 1
 #define HAS_CONFIG_REG 1
 //Configuration Bits
@@ -162,7 +162,7 @@ int test_simple_target_source(){//check if there are any interrupts pending
 
             //enable interrupt
             //EDGE_LEVEL_REGS is used, as it holds the amount of IE-registers per target
-            err = set_inputs((ie_base_address + (target * EDGE_LEVEL_REGS) + (source / DATA_W)) * DATA_W/8, 1 << (source % DATA_W), 0xF);
+            err = set_inputs((ie_base_address+(target*EDGE_LEVEL_REGS)+(source/DATA_W))*DATA_W/8, 1 << (source % DATA_W), 0xF);
 
             //it takes 3 cycles for the interrupt to propagate
             Timer(4*CLK_PERIOD);
@@ -237,17 +237,17 @@ void init_set_regs(){
     th_base_address = ie_base_address + IE_REGS;
     id_base_address = th_base_address + PTHRESHOLD_REGS;
 
-    //clear all IE
-    for (i=0; i < IE_REGS; i++)
-        err = set_inputs(ie_base_address+i, 0, 0xF);
     //clear all EL
     for (i=0; i < EDGE_LEVEL_REGS; i++)
-        err = set_inputs(el_base_address+i, 0, 0xF);
-    //set all threshold to '0'
-    for (i=0; i < PTHRESHOLD_REGS; i++)
-        err = set_inputs(th_base_address+i, 0, 0xF);
+        err = set_inputs((el_base_address+i)*DATA_W/8, 0, 0xF);
     //set priority for all sources to '1'; '0' means 'never interrupt'
     for (i=0; i < PRIORITY_REGS; i++)
-        err = set_inputs(pr_base_address+i, 1, 0xF);
+        err = set_inputs((pr_base_address+i)*DATA_W/8, 0x11111111, 0xF);
+    //clear all IE
+    for (i=0; i < IE_REGS; i++)
+        err = set_inputs((ie_base_address+i)*DATA_W/8, 0, 0xF);
+    //set all threshold to '0'
+    for (i=0; i < PTHRESHOLD_REGS; i++)
+        err = set_inputs((th_base_address+i)*DATA_W/8, 0, 0xF);
 
 }
