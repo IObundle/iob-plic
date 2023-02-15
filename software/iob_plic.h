@@ -1,8 +1,8 @@
 #pragma once
 
 #define DATA_W 32
-#define SOURCES 8
-#define TARGETS 2
+#define SOURCES 32
+#define TARGETS 1
 #define PRIORITY_BITS 3 //$clog2(PRIORITIES); PRIORITIES = 8;
 #define HAS_THRESHOLD 1
 #define HAS_CONFIG_REG 1
@@ -45,8 +45,8 @@ void plic_init(int);
 void plic_write(int, int);
 int  plic_read(int);
 
-void plic_enable_interrupt(int);
-void plic_disable_interrupt(int);
+int  plic_enable_interrupt(int);
+int  plic_disable_interrupt(int);
 int  plic_claim_interrupt();
 void plic_complete_interrupt(int);
 

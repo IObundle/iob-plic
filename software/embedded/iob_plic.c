@@ -28,15 +28,17 @@ int plic_read(int address){
     return (uint64_t)(*(volatile uint32_t *) (base+address));
 }
 
-void plic_enable_interrupt(int source){
+int plic_enable_interrupt(int source){
     int target;
     target = csr_read_mhartid();
     plic_write((IE_BASE_ADDRESS+(target*EDGE_LEVEL_REGS)+(source/DATA_W))*DATA_W/8, 1 << (source % DATA_W));
+    return target;
 }
-void plic_disable_interrupt(int source){
+int plic_disable_interrupt(int source){
     int target;
     target = csr_read_mhartid();
     plic_write((IE_BASE_ADDRESS+(target*EDGE_LEVEL_REGS)+(source/DATA_W))*DATA_W/8, 0);
+    return target;
 }
 /* Returns interrupt ID */
 int plic_claim_interrupt(){

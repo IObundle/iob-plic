@@ -36,10 +36,11 @@ int main() {
 
     // Global interrupt enable
     csr_set_bits_mstatus(MSTATUS_MIE_BIT_MASK);
-
-    printf("Waiting...\n");
-    // Wait for interrupt
-    __asm__ volatile ("wfi");
+    
+    // Enable PLIC interrupt for UART
+    printf("Enabling external interrupt source 0 with ID = 1.\n");
+    int target;
+    target = plic_enable_interrupt(0);
 
     printf("Exit...\n");
     uart_finish();
@@ -59,7 +60,11 @@ static void irq_entry(void)  {
         switch (this_cause) {
         case RISCV_INT_POS_MEI :
             printf("External interrupt.\n");
-            // DO PLIC software
+            int source_id = 0;
+            source_id = plic_claim_interrupt();
+            printf("External ID received was: %d.\n", source_id);
+            plic_complete_interrupt(source_id);
+            plic_disable_interrupt(source_id);
             break;
         }
     }
