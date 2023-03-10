@@ -5,8 +5,8 @@
    //
 
    iob_plic #(
-      .SOURCES(32), //Number of interrupt sources
-      .TARGETS(`N_CORES)   //Number of interrupt targets
+      .SOURCES(`N_SOURCES), //Number of interrupt sources
+      .TARGETS(`N_TARGETS)   //Number of interrupt targets
     ) plic
     (
       .clk     (clk),
@@ -19,6 +19,6 @@
       .rdata   (slaves_resp[`rdata(`PLIC)]),
       .ready   (slaves_resp[`ready(`PLIC)]),
 
-      .src     ({{31{1'b0}}, uartInterrupt}),
-      .irq     (externalInterrupt)
+      .src     (IOb_Interrupts),
+      .irq     (External_Interrupts)
       );
