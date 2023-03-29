@@ -14,7 +14,7 @@ The python-setup workflow allows to automatically generate verilog components us
 - `make clean`: removes the build directory.
 
 An example of cleaning a previous build, creating a new build and simulating the project is:
-- `make clean && make setup && make -C ../iob_clint_V0.10 sim-run`
+- `make clean && make setup && make -C ../iob_plic_V0.10 sim-run`
 
 ## Documentation
 
