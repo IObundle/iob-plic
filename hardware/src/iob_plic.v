@@ -96,8 +96,8 @@ module iob_plic #(
     .HAS_CONFIG_REG    ( HAS_CONFIG_REG    )
   )
   dyn_register_inst (
-    .arst_i_n ( ~arst_i ), //Active low asynchronous reset
-    .clk_i    ( clk_i   ), //System clock
+    .rst_n    ( ~arst_i ), //Active low asynchronous reset
+    .clk      ( clk_i   ), //System clock
 
     .we       ( iob_we      ), //write cycle
     .re       ( iob_re      ), //read cycle
@@ -127,8 +127,8 @@ module iob_plic #(
     .MAX_PENDING_COUNT ( MAX_PENDING_COUNT )
   )
   plic_core_inst (
-    .arst_i_n     ( ~arst_i    ),
-    .clk_i       ( clk_i     ),
+    .rst_n     ( ~arst_i    ),
+    .clk       ( clk_i     ),
 
     .src       ( src      ),
     .el        ( el       ),
