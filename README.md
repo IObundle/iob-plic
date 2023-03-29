@@ -2,11 +2,19 @@
 
 ## Overview
 
- This Core is an adaptation of the fully parameterized & programmable Platform Level Interrupt Controller (PLIC), developed by RoaLogic, for RISC-V based Processor Systems supporting a user-defined number of interrupt sources and targets. From RoaLogic this IP contains the PLIC core system verilog files. Besides that it has a verilog wrapper that initializes the PLIC core, the PLIC registers and creates the interface with the iob-soc internal buses. Furthermore, in hardware/include directory can be found the files that allow for the integration of the iob-plic has one of iob-soc peripherals.
+This Core is an adaptation of the fully parameterized & programmable Platform Level Interrupt Controller (PLIC), developed by RoaLogic, for RISC-V based Processor Systems supporting a user-defined number of interrupt sources and targets. From RoaLogic this IP contains the PLIC core system verilog files. Besides that it has a verilog wrapper that initializes the PLIC core, the PLIC registers and creates the interface with the iob-soc internal buses. Furthermore, in hardware/include directory can be found the files that allow for the integration of the iob-plic has one of iob-soc peripherals.
  
 The core supports a programmable number of simultaneous pending interrupt requests per source and individual routing of those interrupt requests to each target, full interrupt prioritisation of each interrupt source and separate enables per target via a matrix of interrupt enable bits.
 
 To reduce latency, the PLIC core presents all asserted interrupts to the target in priority order, queuing them so that a software interrupt handler can service all pending interrupts without the need to restore the interrupted context.
+
+## How to build the core w/ python-setup
+The python-setup workflow allows to automatically generate verilog components used by the projects core Verilog. It allows to create bus interfaces with ease and use existing Verilog modules. To use python-setup the project should have a *project*_setup.py file in the root directory. The main commands to use the python-setup workflow are:
+- `make setup`: creates a build directory in the projects parent directory.
+- `make clean`: removes the build directory.
+
+An example of cleaning a previous build, creating a new build and simulating the project is:
+- `make clean && make setup && make -C ../iob_clint_V0.10 sim-run`
 
 ## Documentation
 
