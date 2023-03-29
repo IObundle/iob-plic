@@ -73,6 +73,9 @@ module iob_plic #(
    end  //always ready after a valid
   //assign err = 1'b0;  //Never an error; Not needed??
 
+   // Ready signal
+   assign iob_ready_o = 1'b1;
+
 
   /** APB Read/Write */
   assign iob_write = |iob_wstrb_i;
