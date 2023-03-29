@@ -1,20 +1,21 @@
 `timescale 1ns / 1ps
 
-module iob_plic_top #(
+module iob_plic_sim_wrapper #(
     parameter ADDR_W  = 16,
     parameter DATA_W  = 32,
     parameter SOURCES = 8,
     parameter TARGETS = 2
     ) (
-    input                clk,
-    input                rst,
+    input                clk_i,
+    input                arst_i,
 
-    input                valid,
-    input [ADDR_W-1:0]   address,
-    input [DATA_W-1:0]   wdata,
-    input [DATA_W/8-1:0] wstrb,
-    output [DATA_W-1:0]  rdata,
-    output               ready,
+    input [0:0]          iob_avalid,
+    input [ADDR_W-1:0]   iob_addr,
+    input [DATA_W-1:0]   iob_wdata,
+    input [DATA_W/8-1:0] iob_wstrb,
+    output [0:0]         iob_rvalid,
+    output [DATA_W-1:0]  iob_rdata,
+    output [0:0]         iob_ready,
 
     input [SOURCES-1:0]  srip,
     output [TARGETS-1:0] meip
@@ -26,6 +27,8 @@ module iob_plic_top #(
         $dumpvars();
     end
 `endif
+
+    wire cke_i = 1'b1;
 
     iob_plic #(
         //IOb-bus Parameters
@@ -41,18 +44,12 @@ module iob_plic_top #(
         .HAS_CONFIG_REG   (1)
         )
     plic_ut (
-        .clk(clk),
-        .rst(rst),
-
-        .valid(valid),
-        .address(address),
-        .wdata(wdata),
-        .wstrb(wstrb),
-        .rdata(rdata),
-        .ready(ready),
+        `include "iob_s_portmap.vh"
 
         .src(srip),
-        .irq(meip)
+        .irq(meip),
+
+        `include "iob_clkenrst_portmap.vh"
         );
 
 endmodule

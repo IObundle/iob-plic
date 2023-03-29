@@ -1,32 +1,13 @@
 `timescale 1ns / 1ps
 
-module iob_plic #(
-  //IOb-bus Parameters
-  parameter ADDR_W   = 16,
-  parameter DATA_W   = 32,
+`include "iob_lib.vh"
+`include "iob_plic_conf.vh"
 
-  //PLIC Parameters
-  parameter SOURCES           = 64,//35,  //Number of interrupt sources
-  parameter TARGETS           = 4,   //Number of interrupt targets
-  parameter PRIORITIES        = 8,   //Number of Priority levels
-  parameter MAX_PENDING_COUNT = 8,   //Max. number of 'pending' events
-  parameter HAS_THRESHOLD     = 1,   //Is 'threshold' implemented?
-  parameter HAS_CONFIG_REG    = 1    //Is the 'configuration' register implemented?
-)
-(
-  input                   clk,
-  input                   rst,
-  
-  input                   valid,
-  input [ADDR_W     -1:0] address,
-  input [DATA_W     -1:0] wdata,
-  input [DATA_W/8   -1:0] wstrb,
-  output reg [DATA_W-1:0] rdata,
-  output reg              ready,
-
-  input  [SOURCES   -1:0] src,       //Interrupt sources
-  output [TARGETS   -1:0] irq        //Interrupt Requests
-);
+module iob_plic #(    
+  `include "iob_plic_params.vh"
+  ) (
+  `include "iob_plic_io.vh"
+  );
 
   //////////////////////////////////////////////////////////////////
   //
@@ -57,8 +38,9 @@ module iob_plic #(
   //
 
   //IOb-bus write action
-  wire                     iob_we;
-  wire                     iob_re;
+  wire iob_write;
+  wire iob_we;
+  wire iob_re;
 
   //Decoded registers
   wire [SOURCES      -1:0] el;
@@ -79,20 +61,26 @@ module iob_plic #(
 
 
   /** IOb-bus accesses */
+  reg iob_rvalid_reg;
+  assign iob_rvalid_o = iob_rvalid_reg;
   //The core supports zero-wait state accesses on all transfers.
-  always @(posedge clk, posedge rst) begin
-      if (rst) begin
-        ready <= 1'b0;
-      end else begin
-        ready <= valid;
+  always @(posedge clk_i, posedge arst_i) begin
+      if (arst_i) begin
+        iob_rvalid_reg <= 1'b0;
+      end else if (~iob_write) begin
+        iob_rvalid_reg <= iob_avalid_i;
       end
    end  //always ready after a valid
   //assign err = 1'b0;  //Never an error; Not needed??
 
+   // Ready signal
+   assign iob_ready_o = 1'b1;
+
 
   /** APB Read/Write */
-  assign iob_re = valid & ~{|wstrb};
-  assign iob_we = valid &  {|wstrb};
+  assign iob_write = |iob_wstrb_i;
+  assign iob_re = iob_avalid_i & ~iob_write;
+  assign iob_we = iob_avalid_i & iob_write;
 
 
   /** Hookup Dynamic Register block
@@ -111,24 +99,22 @@ module iob_plic #(
     .HAS_CONFIG_REG    ( HAS_CONFIG_REG    )
   )
   dyn_register_inst (
-    .rst_n    ( ~rst     ), //Active low asynchronous reset
-    .clk      ( clk      ), //System clock
+    .rst_n    ( ~arst_i ), //Active low asynchronous reset
+    .clk      ( clk_i   ), //System clock
 
-    .we       ( iob_we   ), //write cycle
-    .re       ( iob_re   ), //read cycle
-    .be       ( wstrb    ), //STRB=byte-enables
-    .waddr    ( address  ), //write address
-    .raddr    ( address  ), //read address
-    .wdata    ( wdata    ), //write data
-    .rdata    ( rdata    ), //read data
+    .we       ( iob_we      ), //write cycle
+    .re       ( iob_re      ), //read cycle
+    .be       ( iob_wstrb_i ), //STRB=byte-enables
+    .waddr    ( iob_addr_i  ), //write address
+    .raddr    ( iob_addr_i  ), //read address
+    .wdata    ( iob_wdata_i ), //write data
+    .rdata    ( iob_rdata_o ), //read data
 
     .el       ( el       ), //Edge/Level
     .ip       ( ip       ), //Interrupt Pending
-
     .ie       ( ie       ), //Interrupt Enable
     .p        ( p        ), //Priority
     .th       ( th       ), //Priority Threshold
-
     .id       ( id       ), //Interrupt ID
     .claim    ( claim    ), //Interrupt Claim
     .complete ( complete )  //Interrupt Complete
@@ -144,8 +130,8 @@ module iob_plic #(
     .MAX_PENDING_COUNT ( MAX_PENDING_COUNT )
   )
   plic_core_inst (
-    .rst_n     ( ~rst    ),
-    .clk       ( clk     ),
+    .rst_n     ( ~arst_i    ),
+    .clk       ( clk_i     ),
 
     .src       ( src      ),
     .el        ( el       ),
