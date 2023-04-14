@@ -14,22 +14,22 @@ module iob_plic #(
   // Constants
   //
 
-  localparam SOURCES_BITS  = $clog2(SOURCES+1);  //0=reserved
+  localparam SOURCES_BITS  = $clog2(N_SOURCES+1);  //0=reserved
   localparam PRIORITY_BITS = $clog2(PRIORITIES);
 
 
 /** Address map
  * Configuration (if implemented)
  * GateWay control
- *   [SOURCES      -1:0] el
- *   [PRIORITY_BITS-1:0] priority  [SOURCES]
+ *   [N_SOURCES      -1:0] el
+ *   [PRIORITY_BITS-1:0] priority  [N_SOURCES]
  *
  * PLIC-Core
- *   [SOURCES      -1:0] ie        [TARGETS]
- *   [PRIORITY_BITS-1:0] threshold [TARGETS] (if implemented)
+ *   [N_SOURCES      -1:0] ie        [N_TARGETS]
+ *   [PRIORITY_BITS-1:0] threshold [N_TARGETS] (if implemented)
  *
  * Target
- *   [SOURCES_BITS -1:0] id        [TARGETS]
+ *   [N_SOURCES_BITS -1:0] id        [N_TARGETS]
  */
 
   //////////////////////////////////////////////////////////////////
@@ -43,15 +43,15 @@ module iob_plic #(
   wire iob_re;
 
   //Decoded registers
-  wire [SOURCES      -1:0] el;
-  wire [SOURCES      -1:0] ip;
-  wire [PRIORITY_BITS-1:0] p  [SOURCES];
-  wire [SOURCES      -1:0] ie [TARGETS];
-  wire [PRIORITY_BITS-1:0] th [TARGETS];
-  wire [SOURCES_BITS -1:0] id [TARGETS];
+  wire [N_SOURCES      -1:0] el;
+  wire [N_SOURCES      -1:0] ip;
+  wire [PRIORITY_BITS-1:0] p  [N_SOURCES];
+  wire [N_SOURCES      -1:0] ie [N_TARGETS];
+  wire [PRIORITY_BITS-1:0] th [N_TARGETS];
+  wire [SOURCES_BITS -1:0] id [N_TARGETS];
 
-  wire [TARGETS      -1:0] claim;
-  wire [TARGETS      -1:0] complete;
+  wire [N_TARGETS      -1:0] claim;
+  wire [N_TARGETS      -1:0] complete;
 
 
   //////////////////////////////////////////////////////////////////
@@ -91,8 +91,8 @@ module iob_plic #(
     .DATA_SIZE  ( DATA_W ),
 
     //PLIC Parameters
-    .SOURCES           ( SOURCES           ),
-    .TARGETS           ( TARGETS           ),
+    .SOURCES           ( N_SOURCES           ),
+    .TARGETS           ( N_TARGETS           ),
     .PRIORITIES        ( PRIORITIES        ),
     .MAX_PENDING_COUNT ( MAX_PENDING_COUNT ),
     .HAS_THRESHOLD     ( HAS_THRESHOLD     ),
@@ -124,8 +124,8 @@ module iob_plic #(
   /** Hookup PLIC Core
    */
   plic_core #(
-    .SOURCES           ( SOURCES           ),
-    .TARGETS           ( TARGETS           ),
+    .SOURCES           ( N_SOURCES           ),
+    .TARGETS           ( N_TARGETS           ),
     .PRIORITIES        ( PRIORITIES        ),
     .MAX_PENDING_COUNT ( MAX_PENDING_COUNT )
   )
