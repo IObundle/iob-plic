@@ -41,7 +41,7 @@ ios = \
     {'name': 'general', 'descr':'GENERAL INTERFACE SIGNALS', 'ports': [
         {'name':"clk_i" , 'type':"I", 'n_bits':'1', 'descr':"System clock input"},
         {'name':"arst_i", 'type':"I", 'n_bits':'1', 'descr':"System reset, asynchronous and active high"},
-        {'name':"cke_i" , 'type':"I", 'n_bits':'1', 'descr':"System reset, asynchronous and active high"}
+        {'name':"cke_i" , 'type':"I", 'n_bits':'1', 'descr':"System clock enable"}
     ]},
     {'name': 'plic_io', 'descr':'PLIC specific IO.', 'ports': [
         #{'name':'interrupt', 'type':'O', 'n_bits':'1', 'descr':'be done'},
