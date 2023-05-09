@@ -3,8 +3,8 @@
 module iob_plic_sim_wrapper #(
     parameter ADDR_W  = 16,
     parameter DATA_W  = 32,
-    parameter SOURCES = 8,
-    parameter TARGETS = 2
+    parameter N_SOURCES = 8,
+    parameter N_TARGETS = 2
     ) (
     input                clk_i,
     input                arst_i,
@@ -17,8 +17,8 @@ module iob_plic_sim_wrapper #(
     output [DATA_W-1:0]  iob_rdata,
     output [0:0]         iob_ready,
 
-    input [SOURCES-1:0]  srip,
-    output [TARGETS-1:0] meip
+    input [N_SOURCES-1:0]  srip,
+    output [N_TARGETS-1:0] meip
     );
 
 `ifdef VCD
@@ -36,8 +36,8 @@ module iob_plic_sim_wrapper #(
         .DATA_W(DATA_W),
 
         //PLIC Parameters
-        .SOURCES          (SOURCES),
-        .TARGETS          (TARGETS),
+        .N_SOURCES          (N_SOURCES),
+        .N_TARGETS          (N_TARGETS),
         .PRIORITIES       (8),
         .MAX_PENDING_COUNT(8),
         .HAS_THRESHOLD    (1),
