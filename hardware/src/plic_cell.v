@@ -68,39 +68,38 @@
 `timescale 1ns / 1ps
 
 module plic_cell #(
-  parameter ID         = 1,
-  parameter SOURCES    = 8,
-  parameter PRIORITIES = 7,
+   parameter ID         = 1,
+   parameter SOURCES    = 8,
+   parameter PRIORITIES = 7,
 
-  //These should be localparams, but that's not supported by all tools yet
-  parameter SOURCES_BITS  = $clog2(SOURCES +1), //0=reserved
-  parameter PRIORITY_BITS = $clog2(PRIORITIES)
-)
-(
-  input                          rst_ni,      //Asynchronous active low reset
-  input                          clk_i,       //System clock
+   //These should be localparams, but that's not supported by all tools yet
+   parameter SOURCES_BITS  = $clog2(SOURCES + 1),  //0=reserved
+   parameter PRIORITY_BITS = $clog2(PRIORITIES)
+) (
+   input rst_ni,  //Asynchronous active low reset
+   input clk_i,   //System clock
 
-  //Interrupt Request
-  input                          ip_i,        //Interrupt pending
-  input                          ie_i,        //Interrupt Enable
-  input      [PRIORITY_BITS-1:0] priority_i,  //Interrupt priority
+   //Interrupt Request
+   input                     ip_i,       //Interrupt pending
+   input                     ie_i,       //Interrupt Enable
+   input [PRIORITY_BITS-1:0] priority_i, //Interrupt priority
 
-  output reg [SOURCES_BITS -1:0] id_o,        //Pending interrupt ID
-  output reg [PRIORITY_BITS-1:0] priority_o   //Pending interrupt priority
+   output reg [SOURCES_BITS -1:0] id_o,       //Pending interrupt ID
+   output reg [PRIORITY_BITS-1:0] priority_o  //Pending interrupt priority
 );
-  //////////////////////////////////////////////////////////////////
-  //
-  // Module Body
-  //
+   //////////////////////////////////////////////////////////////////
+   //
+   // Module Body
+   //
 
-  always @(posedge clk_i,negedge rst_ni)
-    if      (!rst_ni      ) priority_o <= 0;
-    else if ( ip_i && ie_i) priority_o <= priority_i;
-    else                    priority_o <= 0;
+   always @(posedge clk_i, negedge rst_ni)
+      if (!rst_ni) priority_o <= 0;
+      else if (ip_i && ie_i) priority_o <= priority_i;
+      else priority_o <= 0;
 
-  always @(posedge clk_i,negedge rst_ni)
-    if      (!rst_ni      ) id_o <= 0;
-    else if ( ip_i && ie_i) id_o <= ID;
-    else                    id_o <= 0;
+   always @(posedge clk_i, negedge rst_ni)
+      if (!rst_ni) id_o <= 0;
+      else if (ip_i && ie_i) id_o <= ID;
+      else id_o <= 0;
 
 endmodule : plic_cell

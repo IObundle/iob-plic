@@ -1,55 +1,54 @@
 `timescale 1ns / 1ps
 
 module iob_plic_sim_wrapper #(
-    parameter ADDR_W  = 16,
-    parameter DATA_W  = 32,
-    parameter SOURCES = 8,
-    parameter TARGETS = 2
-    ) (
-    input                clk_i,
-    input                arst_i,
+   parameter ADDR_W  = 16,
+   parameter DATA_W  = 32,
+   parameter SOURCES = 8,
+   parameter TARGETS = 2
+) (
+   input clk_i,
+   input arst_i,
 
-    input [0:0]          iob_avalid,
-    input [ADDR_W-1:0]   iob_addr,
-    input [DATA_W-1:0]   iob_wdata,
-    input [DATA_W/8-1:0] iob_wstrb,
-    output [0:0]         iob_rvalid,
-    output [DATA_W-1:0]  iob_rdata,
-    output [0:0]         iob_ready,
+   input  [         0:0] iob_avalid,
+   input  [  ADDR_W-1:0] iob_addr,
+   input  [  DATA_W-1:0] iob_wdata,
+   input  [DATA_W/8-1:0] iob_wstrb,
+   output [         0:0] iob_rvalid,
+   output [  DATA_W-1:0] iob_rdata,
+   output [         0:0] iob_ready,
 
-    input [SOURCES-1:0]  srip,
-    output [TARGETS-1:0] meip
-    );
+   input  [SOURCES-1:0] srip,
+   output [TARGETS-1:0] meip
+);
 
 `ifdef VCD
-    initial begin
-        $dumpfile("iob_plic.vcd");
-        $dumpvars();
-    end
+   initial begin
+      $dumpfile("iob_plic.vcd");
+      $dumpvars();
+   end
 `endif
 
-    wire cke_i = 1'b1;
+   wire cke_i = 1'b1;
 
-    iob_plic #(
-        //IOb-bus Parameters
-        .ADDR_W(ADDR_W),
-        .DATA_W(DATA_W),
+   iob_plic #(
+      //IOb-bus Parameters
+      .ADDR_W(ADDR_W),
+      .DATA_W(DATA_W),
 
-        //PLIC Parameters
-        .SOURCES          (SOURCES),
-        .TARGETS          (TARGETS),
-        .PRIORITIES       (8),
-        .MAX_PENDING_COUNT(8),
-        .HAS_THRESHOLD    (1),
-        .HAS_CONFIG_REG   (1)
-        )
-    plic_ut (
-        `include "iob_s_portmap.vh"
+      //PLIC Parameters
+      .SOURCES          (SOURCES),
+      .TARGETS          (TARGETS),
+      .PRIORITIES       (8),
+      .MAX_PENDING_COUNT(8),
+      .HAS_THRESHOLD    (1),
+      .HAS_CONFIG_REG   (1)
+   ) plic_ut (
+      `include "iob_s_portmap.vh"
 
-        .src(srip),
-        .irq(meip),
+      .src(srip),
+      .irq(meip),
 
-        `include "iob_clkenrst_portmap.vh"
-        );
+      `include "iob_clkenrst_portmap.vh"
+   );
 
 endmodule

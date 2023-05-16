@@ -67,77 +67,71 @@
 `timescale 1ns / 1ps
 
 module plic_priority_index #(
-  parameter SOURCES    = 16,
-  parameter PRIORITIES = 7,
-  parameter HI         = 16,
-  parameter LO         = 0,
+   parameter SOURCES    = 16,
+   parameter PRIORITIES = 7,
+   parameter HI         = 16,
+   parameter LO         = 0,
 
-  //These should be localparams, but that's not supported by all tools yet
-  parameter SOURCES_BITS  = $clog2(SOURCES +1), //0=reserved
-  parameter PRIORITY_BITS = $clog2(PRIORITIES)
-)
-(
-  input  [PRIORITY_BITS-1:0] priority_i [SOURCES], //Interrupt Priority
-  input  [SOURCES_BITS -1:0] idx_i      [SOURCES],
-  output [PRIORITY_BITS-1:0] priority_o,
-  output [SOURCES_BITS -1:0] idx_o
+   //These should be localparams, but that's not supported by all tools yet
+   parameter SOURCES_BITS  = $clog2(SOURCES + 1),  //0=reserved
+   parameter PRIORITY_BITS = $clog2(PRIORITIES)
+) (
+   input  [PRIORITY_BITS-1:0] priority_i[SOURCES],  //Interrupt Priority
+   input  [SOURCES_BITS -1:0] idx_i     [SOURCES],
+   output [PRIORITY_BITS-1:0] priority_o,
+   output [SOURCES_BITS -1:0] idx_o
 );
 
-  //////////////////////////////////////////////////////////////////
-  //
-  // Variables
-  //
+   //////////////////////////////////////////////////////////////////
+   //
+   // Variables
+   //
 
-  logic [PRIORITY_BITS-1:0] priority_hi, priority_lo;
-  logic [SOURCES_BITS -1:0] idx_hi,      idx_lo;
+   logic [PRIORITY_BITS-1:0] priority_hi, priority_lo;
+   logic [SOURCES_BITS -1:0] idx_hi, idx_lo;
 
-  //initial if (HI-LO>1) $display ("HI=%0d, LO=%0d -> hi(%0d,%0d) lo(%0d,%0d)", HI, LO, HI, HI-(HI-LO)/2, LO+(HI-LO)/2, LO);
+   //initial if (HI-LO>1) $display ("HI=%0d, LO=%0d -> hi(%0d,%0d) lo(%0d,%0d)", HI, LO, HI, HI-(HI-LO)/2, LO+(HI-LO)/2, LO);
 
-  //////////////////////////////////////////////////////////////////
-  //
-  // Module Body
-  //
+   //////////////////////////////////////////////////////////////////
+   //
+   // Module Body
+   //
 
-  generate
-    if (HI - LO > 1)
-    begin
-        plic_priority_index #(
-          .SOURCES    ( SOURCES        ),
-          .PRIORITIES ( PRIORITIES     ),
-          .HI         ( LO + (HI-LO)/2 ),
-          .LO         ( LO             )
-        )
-        lo (
-          .priority_i ( priority_i  ),
-          .idx_i      ( idx_i       ),
-          .priority_o ( priority_lo ),
-          .idx_o      ( idx_lo      )
-        );
+   generate
+      if (HI - LO > 1) begin
+         plic_priority_index #(
+            .SOURCES   (SOURCES),
+            .PRIORITIES(PRIORITIES),
+            .HI        (LO + (HI - LO) / 2),
+            .LO        (LO)
+         ) lo (
+            .priority_i(priority_i),
+            .idx_i     (idx_i),
+            .priority_o(priority_lo),
+            .idx_o     (idx_lo)
+         );
 
-        plic_priority_index #(
-          .SOURCES    ( SOURCES        ),
-          .PRIORITIES ( PRIORITIES     ),
-          .HI         ( HI             ),
-          .LO         ( HI - (HI-LO)/2 )
-        ) hi
-        (
-          .priority_i ( priority_i  ),
-          .idx_i      ( idx_i       ),
-          .priority_o ( priority_hi ),
-          .idx_o      ( idx_hi      )
-        );
-    end
-    else
-    begin
-        assign priority_lo = priority_i[LO];
-        assign priority_hi = priority_i[HI];
-        assign idx_lo      = idx_i     [LO];
-        assign idx_hi      = idx_i     [HI];
-    end
-  endgenerate
+         plic_priority_index #(
+            .SOURCES   (SOURCES),
+            .PRIORITIES(PRIORITIES),
+            .HI        (HI),
+            .LO        (HI - (HI - LO) / 2)
+         ) hi (
+            .priority_i(priority_i),
+            .idx_i     (idx_i),
+            .priority_o(priority_hi),
+            .idx_o     (idx_hi)
+         );
+      end else begin
+         assign priority_lo = priority_i[LO];
+         assign priority_hi = priority_i[HI];
+         assign idx_lo      = idx_i[LO];
+         assign idx_hi      = idx_i[HI];
+      end
+   endgenerate
 
-  assign priority_o = priority_hi > priority_lo ? priority_hi : priority_lo;
-  assign idx_o      = priority_hi > priority_lo ? idx_hi      : idx_lo;
+   assign priority_o = priority_hi > priority_lo ? priority_hi : priority_lo;
+   assign idx_o      = priority_hi > priority_lo ? idx_hi : idx_lo;
 
 endmodule : plic_priority_index
 
