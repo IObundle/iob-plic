@@ -68,6 +68,13 @@ int wait_responce(){
   return dut->iob_rdata;
 }
 
+void write_success(){
+  FILE* fd = 0;
+  fd = fopen("test.log", "w");
+  fprintf(fd, "Test passed!");
+  fclose(fd);
+}
+
 int set_inputs(int address, int data, int strb){
   dut->iob_avalid = 1;
   dut->iob_addr = address;
@@ -121,6 +128,7 @@ int main(int argc, char **argv, char **env){
   delete dut;
   dut = NULL;
   printf("Number of errors: %d\n", errors);
+  if(!errors) write_success();
   exit(0);
 
 }
