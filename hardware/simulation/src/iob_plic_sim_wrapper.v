@@ -1,13 +1,13 @@
 `timescale 1ns / 1ps
 
 module iob_plic_sim_wrapper #(
-   parameter ADDR_W  = 16,
-   parameter DATA_W  = 32,
-   parameter SOURCES = 8,
-   parameter TARGETS = 2
-) (
-   input clk_i,
-   input arst_i,
+    parameter ADDR_W  = 16,
+    parameter DATA_W  = 32,
+    parameter N_SOURCES = 8,
+    parameter N_TARGETS = 2
+    ) (
+    input                clk_i,
+    input                arst_i,
 
    input  [         0:0] iob_avalid,
    input  [  ADDR_W-1:0] iob_addr,
@@ -17,9 +17,9 @@ module iob_plic_sim_wrapper #(
    output [  DATA_W-1:0] iob_rdata,
    output [         0:0] iob_ready,
 
-   input  [SOURCES-1:0] srip,
-   output [TARGETS-1:0] meip
-);
+    input [N_SOURCES-1:0]  srip,
+    output [N_TARGETS-1:0] meip
+    );
 
 `ifdef VCD
    initial begin
@@ -35,15 +35,16 @@ module iob_plic_sim_wrapper #(
       .ADDR_W(ADDR_W),
       .DATA_W(DATA_W),
 
-      //PLIC Parameters
-      .SOURCES          (SOURCES),
-      .TARGETS          (TARGETS),
-      .PRIORITIES       (8),
-      .MAX_PENDING_COUNT(8),
-      .HAS_THRESHOLD    (1),
-      .HAS_CONFIG_REG   (1)
-   ) plic_ut (
-      `include "iob_s_portmap.vh"
+        //PLIC Parameters
+        .N_SOURCES          (N_SOURCES),
+        .N_TARGETS          (N_TARGETS),
+        .PRIORITIES       (8),
+        .MAX_PENDING_COUNT(8),
+        .HAS_THRESHOLD    (1),
+        .HAS_CONFIG_REG   (1)
+        )
+    plic_ut (
+        `include "iob_s_portmap.vh"
 
       .src(srip),
       .irq(meip),

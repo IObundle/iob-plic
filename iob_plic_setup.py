@@ -49,7 +49,7 @@ confs = [
     },
     # PLIC Parameters
     {
-        "name": "SOURCES",
+        "name": "N_SOURCES",
         "type": "P",
         "val": "64",
         "min": "NA",
@@ -57,7 +57,7 @@ confs = [
         "descr": "Number of interrupt sources",
     },
     {
-        "name": "TARGETS",
+        "name": "N_TARGETS",
         "type": "P",
         "val": "4",
         "min": "NA",
@@ -120,7 +120,7 @@ ios = [
                 "name": "cke_i",
                 "type": "I",
                 "n_bits": "1",
-                "descr": "System reset, asynchronous and active high",
+                "descr": "System clock enable",
             },
         ],
     },
@@ -145,7 +145,12 @@ ios = [
     },
 ]
 
-regs = []
+regs = [
+    {'name': 'dummy', 'descr':'Dummy registers to run register setup functions', 'regs': [
+        {'name':"DUMMY", 'type':"R", 'n_bits':1, 'rst_val':0, 'addr':-1, 'log2n_items':0, 'autologic':False, 'descr':"Dummy Register"},
+    ]}
+]
+
 blocks = []
 
 
