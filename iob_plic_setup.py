@@ -17,6 +17,9 @@ submodules = {
             "iob_s_port",
             "iob_s_portmap",
             "iob_wire",
+            "iob_lib.vh",
+            "iob_clkenrst_portmap.vh",
+            "iob_clkenrst_port.vh",
         ],
         "modules": [
             "iob_reg_re",
