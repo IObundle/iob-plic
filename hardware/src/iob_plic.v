@@ -14,8 +14,8 @@ module iob_plic #(
    // Constants
    //
 
-  localparam SOURCES_BITS  = $clog2(N_SOURCES+1);  //0=reserved
-  localparam PRIORITY_BITS = $clog2(PRIORITIES);
+   localparam SOURCES_BITS = $clog2(N_SOURCES + 1);  //0=reserved
+   localparam PRIORITY_BITS = $clog2(PRIORITIES);
 
 
    /** Address map
@@ -38,20 +38,20 @@ module iob_plic #(
    //
 
    //IOb-bus write action
-   wire                     iob_write;
-   wire                     iob_we;
-   wire                     iob_re;
+   wire                       iob_write;
+   wire                       iob_we;
+   wire                       iob_re;
 
-  //Decoded registers
-  wire [N_SOURCES      -1:0] el;
-  wire [N_SOURCES      -1:0] ip;
-  wire [PRIORITY_BITS-1:0] p  [N_SOURCES];
-  wire [N_SOURCES      -1:0] ie [N_TARGETS];
-  wire [PRIORITY_BITS-1:0] th [N_TARGETS];
-  wire [SOURCES_BITS -1:0] id [N_TARGETS];
+   //Decoded registers
+   wire [N_SOURCES      -1:0] el;
+   wire [N_SOURCES      -1:0] ip;
+   wire [  PRIORITY_BITS-1:0] p         [N_SOURCES];
+   wire [N_SOURCES      -1:0] ie        [N_TARGETS];
+   wire [  PRIORITY_BITS-1:0] th        [N_TARGETS];
+   wire [  SOURCES_BITS -1:0] id        [N_TARGETS];
 
-  wire [N_TARGETS      -1:0] claim;
-  wire [N_TARGETS      -1:0] complete;
+   wire [N_TARGETS      -1:0] claim;
+   wire [N_TARGETS      -1:0] complete;
 
 
    //////////////////////////////////////////////////////////////////
@@ -101,17 +101,16 @@ module iob_plic #(
       .ADDR_SIZE(ADDR_W),
       .DATA_SIZE(DATA_W),
 
-    //PLIC Parameters
-    .SOURCES           ( N_SOURCES           ),
-    .TARGETS           ( N_TARGETS           ),
-    .PRIORITIES        ( PRIORITIES        ),
-    .MAX_PENDING_COUNT ( MAX_PENDING_COUNT ),
-    .HAS_THRESHOLD     ( HAS_THRESHOLD     ),
-    .HAS_CONFIG_REG    ( HAS_CONFIG_REG    )
-  )
-  dyn_register_inst (
-    .rst_n    ( ~arst_i ), //Active low asynchronous reset
-    .clk      ( clk_i   ), //System clock
+      //PLIC Parameters
+      .SOURCES          (N_SOURCES),
+      .TARGETS          (N_TARGETS),
+      .PRIORITIES       (PRIORITIES),
+      .MAX_PENDING_COUNT(MAX_PENDING_COUNT),
+      .HAS_THRESHOLD    (HAS_THRESHOLD),
+      .HAS_CONFIG_REG   (HAS_CONFIG_REG)
+   ) dyn_register_inst (
+      .rst_n(~arst_i),  //Active low asynchronous reset
+      .clk  (clk_i),    //System clock
 
       .we   (iob_we),       //write cycle
       .re   (iob_re),       //read cycle
@@ -134,15 +133,14 @@ module iob_plic #(
 
    /** Hookup PLIC Core
    */
-  plic_core #(
-    .SOURCES           ( N_SOURCES           ),
-    .TARGETS           ( N_TARGETS           ),
-    .PRIORITIES        ( PRIORITIES        ),
-    .MAX_PENDING_COUNT ( MAX_PENDING_COUNT )
-  )
-  plic_core_inst (
-    .rst_n     ( ~arst_i    ),
-    .clk       ( clk_i     ),
+   plic_core #(
+      .SOURCES          (N_SOURCES),
+      .TARGETS          (N_TARGETS),
+      .PRIORITIES       (PRIORITIES),
+      .MAX_PENDING_COUNT(MAX_PENDING_COUNT)
+   ) plic_core_inst (
+      .rst_n(~arst_i),
+      .clk  (clk_i),
 
       .src      (src),
       .el       (el),

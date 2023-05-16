@@ -18,6 +18,7 @@ submodules = {
             "iob_s_portmap",
             "iob_wire",
             "iob_lib.vh",
+            "iob_utils.vh",
             "iob_clkenrst_portmap.vh",
             "iob_clkenrst_port.vh",
         ],
@@ -132,13 +133,13 @@ ios = [
             {
                 "name": "src",
                 "type": "I",
-                "n_bits": "SOURCES",
+                "n_bits": "N_SOURCES",
                 "descr": "Interrupt sources",
             },
             {
                 "name": "irq",
                 "type": "O",
-                "n_bits": "TARGETS",
+                "n_bits": "N_TARGETS",
                 "descr": "Interrupt Requests",
             },
         ],
@@ -146,9 +147,22 @@ ios = [
 ]
 
 regs = [
-    {'name': 'dummy', 'descr':'Dummy registers to run register setup functions', 'regs': [
-        {'name':"DUMMY", 'type':"R", 'n_bits':1, 'rst_val':0, 'addr':-1, 'log2n_items':0, 'autologic':False, 'descr':"Dummy Register"},
-    ]}
+    {
+        "name": "dummy",
+        "descr": "Dummy registers to run register setup functions",
+        "regs": [
+            {
+                "name": "DUMMY",
+                "type": "R",
+                "n_bits": 1,
+                "rst_val": 0,
+                "addr": -1,
+                "log2n_items": 0,
+                "autologic": False,
+                "descr": "Dummy Register",
+            },
+        ],
+    }
 ]
 
 blocks = []
