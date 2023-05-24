@@ -168,9 +168,19 @@ regs = [
 blocks = []
 
 
+def pos_build_remove_unused_files():
+    unused_files = [
+        "../iob_plic_V0.10/hardware/src/iob_plic_swreg_inst.vh",
+        "../iob_plic_V0.10/hardware/src/iob_plic_inst_params.vh",
+    ]
+    for file in unused_files:
+        os.remove(file)
+
+
 # Main function to setup this core and its components
 def main():
     setup.setup(sys.modules[__name__])
+    pos_build_remove_unused_files()
 
 
 if __name__ == "__main__":

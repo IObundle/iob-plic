@@ -130,7 +130,7 @@ module plic_gateway #(
          2'b10:
          if (pending_cnt > 0) nxt_pending_cnt = pending_cnt - 'h1;
          else nxt_pending_cnt = pending_cnt;
-         2'b11: nxt_pending_cnt = pending_cnt;  //do nothing
+         default: nxt_pending_cnt = pending_cnt;  //do nothing
       endcase
 
 

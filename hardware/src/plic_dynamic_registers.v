@@ -142,7 +142,7 @@ module plic_dynamic_registers #(
       PRIORITY,
       THRESHOLD,
       ID
-   } register_types;
+   } register_types_e;
 
    //Configuration Bits
    localparam MAX_SOURCES_BITS = 16;
@@ -197,7 +197,7 @@ module plic_dynamic_registers #(
    //
    // Functions
    //
-   function logic [DATA_SIZE-1:0] gen_wval;
+   function static logic [DATA_SIZE-1:0] gen_wval;
       //Returns the new value for a register
       // if be[n] == '1' then gen_val[byte_n] = new_val[byte_n]
       // else                 gen_val[byte_n] = old_val[byte_n]
@@ -213,7 +213,7 @@ module plic_dynamic_registers #(
    *  Registers are created dynamically, access is determined by the
    *  parameter settings
    */
-   function automatic register_types register_function;
+   function automatic register_types_e register_function;
       //return register-type for specified register
       input int r;
 
@@ -381,11 +381,11 @@ module plic_dynamic_registers #(
    /** Display Register layout/map
    */
    //synopsys translate_off
-   function string register_function_name;
+   function static string register_function_name;
       //returns the 'string' name associated with a register type
-      input register_types function_number;
+      input register_types_e function_number;
 
-      string name_array[register_types];
+      string name_array[register_types_e];
       name_array[CONFIG]    = "Configuration";
       name_array[EL]        = "Edge/Level";
       name_array[IE]        = "Interrupt Enable";
@@ -593,14 +593,14 @@ module plic_dynamic_registers #(
    generate
       genvar r, t, s;
 
-      for (r = 0; r < TOTAL_REGS; r++) begin : decode_registers
+      for (r = 0; r < TOTAL_REGS; r++) begin : g_decode_registers
          case (register_function(
              r
          ))
             //Decode EL register(s)
             // There are SOURCES EL-bits, spread out over
             //  DATA_SIZE wide registers
-            EL: begin
+            EL: begin : g_el_regs
                if ((register_idx(r) + 1) * DATA_SIZE <= SOURCES)
                   assign el[register_idx(r)*DATA_SIZE+:DATA_SIZE] = registers[r];
                else assign el[SOURCES-1:register_idx(r)*DATA_SIZE] = registers[r];
@@ -611,7 +611,7 @@ module plic_dynamic_registers #(
             //  wide, spread out over DATA_SIZE wide registers,
             //  with each field starting at a nibble boundary
             // Need to use always_comb, because we're not assigning a fixed value
-            PRIORITY: begin
+            PRIORITY: begin : g_priority_regs
                if ((register_idx(r) + 1) * PRIORITY_FIELDS_PER_REG <= SOURCES)
                   for (
                       s = register_idx(r) * PRIORITY_FIELDS_PER_REG;
@@ -632,7 +632,7 @@ module plic_dynamic_registers #(
             // For each TARGET there's SOURCES IE-fields
             // Layout is the same as for the EL-registers, with each
             //  TARGET starting at a new register
-            IE: begin
+            IE: begin : g_ie_regs
                if (((register_idx(r) % EL_REGS) + 1) * DATA_SIZE <= SOURCES)
                   assign ie[register_idx(
                       r
@@ -684,7 +684,7 @@ module plic_dynamic_registers #(
 */
 
             THRESHOLD:
-            if (HAS_THRESHOLD) begin
+            if (HAS_THRESHOLD) begin : g_threshold_regs
                assign th[register_idx(r)] = registers[r][PRIORITY_BITS-1:0];
             end
          endcase
@@ -711,6 +711,7 @@ module plic_dynamic_registers #(
             //      THRESHOLD: if (HAS_THRESHOLD) rdata <= encode_th(read_register_idx);
             THRESHOLD: if (HAS_THRESHOLD) rdata <= th[read_register_idx];
             ID: rdata <= id[read_register_idx];
+            default: ;
          endcase
 
 endmodule : plic_dynamic_registers
