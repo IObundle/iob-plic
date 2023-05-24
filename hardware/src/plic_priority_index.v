@@ -98,7 +98,7 @@ module plic_priority_index #(
    //
 
    generate
-      if (HI - LO > 1) begin
+      if (HI - LO > 1) begin : g_high_priority
          plic_priority_index #(
             .SOURCES   (SOURCES),
             .PRIORITIES(PRIORITIES),
@@ -122,7 +122,7 @@ module plic_priority_index #(
             .priority_o(priority_hi),
             .idx_o     (idx_hi)
          );
-      end else begin
+      end else begin : g_low_priority
          assign priority_lo = priority_i[LO];
          assign priority_hi = priority_i[HI];
          assign idx_lo      = idx_i[LO];
