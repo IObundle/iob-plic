@@ -4,9 +4,9 @@
 `include "iob_plic_conf.vh"
 
 module iob_plic #(
-   `include "iob_plic_params.vh"
+   `include "iob_plic_params.vs"
 ) (
-   `include "iob_plic_io.vh"
+   `include "iob_plic_io.vs"
 );
 
    //////////////////////////////////////////////////////////////////
