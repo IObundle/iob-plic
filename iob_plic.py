@@ -13,11 +13,12 @@ from iob_clkenrst_portmap import iob_clkenrst_portmap
 from iob_clkenrst_port import iob_clkenrst_port
 from iob_reg_re import iob_reg_re
 
+
 class iob_plic(iob_module):
     name = "iob_plic"
     version = "V0.10"
     flows = "sim emb"
-    setup_dir=os.path.dirname(__file__)
+    setup_dir = os.path.dirname(__file__)
 
     @classmethod
     def _run_setup(cls):
@@ -45,80 +46,80 @@ class iob_plic(iob_module):
         # Setup core using LIB function
         setup(cls)
 
-
     @classmethod
     def _setup_confs(cls):
-        super()._setup_confs([
-            # Macros
-
-            # Parameters
-            # IOb-bus Parameters
-            {
-                "name": "DATA_W",
-                "type": "P",
-                "val": "32",
-                "min": "NA",
-                "max": "NA",
-                "descr": "Data bus width",
-            },
-            {
-                "name": "ADDR_W",
-                "type": "P",
-                "val": "16",
-                "min": "NA",
-                "max": "NA",
-                "descr": "Address bus width",
-            },
-            # PLIC Parameters
-            {
-                "name": "N_SOURCES",
-                "type": "P",
-                "val": "64",
-                "min": "NA",
-                "max": "64",
-                "descr": "Number of interrupt sources",
-            },
-            {
-                "name": "N_TARGETS",
-                "type": "P",
-                "val": "4",
-                "min": "NA",
-                "max": "8",
-                "descr": "Number of interrupt targets",
-            },
-            {
-                "name": "PRIORITIES",
-                "type": "P",
-                "val": "8",
-                "min": "NA",
-                "max": "8",
-                "descr": "Number of Priority levels",
-            },
-            {
-                "name": "MAX_PENDING_COUNT",
-                "type": "P",
-                "val": "8",
-                "min": "NA",
-                "max": "8",
-                "descr": "Max. number of 'pending' events",
-            },
-            {
-                "name": "HAS_THRESHOLD",
-                "type": "P",
-                "val": "1",
-                "min": "NA",
-                "max": "1",
-                "descr": "Is 'threshold' implemented?",
-            },
-            {
-                "name": "HAS_CONFIG_REG",
-                "type": "P",
-                "val": "1",
-                "min": "NA",
-                "max": "1",
-                "descr": "Is the 'configuration' register implemented?",
-            },
-        ])
+        super()._setup_confs(
+            [
+                # Macros
+                # Parameters
+                # IOb-bus Parameters
+                {
+                    "name": "DATA_W",
+                    "type": "P",
+                    "val": "32",
+                    "min": "NA",
+                    "max": "NA",
+                    "descr": "Data bus width",
+                },
+                {
+                    "name": "ADDR_W",
+                    "type": "P",
+                    "val": "16",
+                    "min": "NA",
+                    "max": "NA",
+                    "descr": "Address bus width",
+                },
+                # PLIC Parameters
+                {
+                    "name": "N_SOURCES",
+                    "type": "P",
+                    "val": "64",
+                    "min": "NA",
+                    "max": "64",
+                    "descr": "Number of interrupt sources",
+                },
+                {
+                    "name": "N_TARGETS",
+                    "type": "P",
+                    "val": "4",
+                    "min": "NA",
+                    "max": "8",
+                    "descr": "Number of interrupt targets",
+                },
+                {
+                    "name": "PRIORITIES",
+                    "type": "P",
+                    "val": "8",
+                    "min": "NA",
+                    "max": "8",
+                    "descr": "Number of Priority levels",
+                },
+                {
+                    "name": "MAX_PENDING_COUNT",
+                    "type": "P",
+                    "val": "8",
+                    "min": "NA",
+                    "max": "8",
+                    "descr": "Max. number of 'pending' events",
+                },
+                {
+                    "name": "HAS_THRESHOLD",
+                    "type": "P",
+                    "val": "1",
+                    "min": "NA",
+                    "max": "1",
+                    "descr": "Is 'threshold' implemented?",
+                },
+                {
+                    "name": "HAS_CONFIG_REG",
+                    "type": "P",
+                    "val": "1",
+                    "min": "NA",
+                    "max": "1",
+                    "descr": "Is the 'configuration' register implemented?",
+                },
+            ]
+        )
 
     @classmethod
     def _setup_ios(cls):
