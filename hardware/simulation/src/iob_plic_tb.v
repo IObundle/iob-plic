@@ -32,6 +32,7 @@ module iob_plic_tb;
     srip = 0;
     $display("Testbench begin!");
     #100 reset = 0;
+    // TO DO, if needed add tasks to simulate PLIC behaviour.
     $display("Testbench end!");
     fd = $fopen("test.log", "w");
     $fdisplay(fd, "Test passed!");
