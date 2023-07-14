@@ -1,6 +1,6 @@
 #include <stdint.h>
 
-#include "iob_plic.h"
+#include "iob-plic.h"
 #include "riscv-csr.h"
 
 void plic_init(int base_address){

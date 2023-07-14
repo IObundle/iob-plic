@@ -66,68 +66,65 @@
 `timescale 1ns / 1ps
 
 module plic_target #(
-  parameter SOURCES = 8,
-  parameter PRIORITIES = 7,
+   parameter SOURCES    = 8,
+   parameter PRIORITIES = 7,
 
-  //These should be localparams, but that's not supported by all tools yet
-  parameter SOURCES_BITS  = $clog2(SOURCES +1), //0=reserved
-  parameter PRIORITY_BITS = $clog2(PRIORITIES)
-)
-(
-  input                          rst_ni,               //Active low asynchronous reset
-                                 clk_i,                //System clock
+   //These should be localparams, but that's not supported by all tools yet
+   parameter SOURCES_BITS  = $clog2(SOURCES + 1),  //0=reserved
+   parameter PRIORITY_BITS = $clog2(PRIORITIES)
+) (
+   input rst_ni,  //Active low asynchronous reset
+   clk_i,  //System clock
 
-  input      [SOURCES_BITS -1:0] id_i       [SOURCES], //Interrupt source
-  input      [PRIORITY_BITS-1:0] priority_i [SOURCES], //Interrupt Priority
+   input [SOURCES_BITS -1:0] id_i      [SOURCES],  //Interrupt source
+   input [PRIORITY_BITS-1:0] priority_i[SOURCES],  //Interrupt Priority
 
-  input      [PRIORITY_BITS-1:0] threshold_i,          //Interrupt Priority Threshold
+   input [PRIORITY_BITS-1:0] threshold_i,  //Interrupt Priority Threshold
 
-  output reg                     ireq_o,               //Interrupt Request (EIP)
-  output reg [SOURCES_BITS -1:0] id_o                  //Interrupt ID
+   output reg                     ireq_o,  //Interrupt Request (EIP)
+   output reg [SOURCES_BITS -1:0] id_o     //Interrupt ID
 );
-  //////////////////////////////////////////////////////////////////
-  //
-  // Constant
-  //
+   //////////////////////////////////////////////////////////////////
+   //
+   // Constant
+   //
 
 
-  //////////////////////////////////////////////////////////////////
-  //
-  // Variables
-  //
-  logic [SOURCES_BITS -1:0] id;
-  logic [PRIORITY_BITS-1:0] pr;
+   //////////////////////////////////////////////////////////////////
+   //
+   // Variables
+   //
+   logic [SOURCES_BITS -1:0] id;
+   logic [PRIORITY_BITS-1:0] pr;
 
 
-  //////////////////////////////////////////////////////////////////
-  //
-  // Module Body
-  //
+   //////////////////////////////////////////////////////////////////
+   //
+   // Module Body
+   //
 
-  /** Select highest priority pending interrupt
+   /** Select highest priority pending interrupt
    */
-  plic_priority_index #(
-    .SOURCES    ( SOURCES    ),
-    .PRIORITIES ( PRIORITIES ),
-    .HI         ( SOURCES -1 ),
-    .LO         ( 0          )
-  )
-  priority_index_tree (
-    .priority_i ( priority_i ),
-    .idx_i      ( id_i       ),
-    .priority_o ( pr         ),
-    .idx_o      ( id         )
-  );
+   plic_priority_index #(
+      .SOURCES   (SOURCES),
+      .PRIORITIES(PRIORITIES),
+      .HI        (SOURCES - 1),
+      .LO        (0)
+   ) priority_index_tree (
+      .priority_i(priority_i),
+      .idx_i     (id_i),
+      .priority_o(pr),
+      .idx_o     (id)
+   );
 
 
-  /** Generate output
+   /** Generate output
   */
-  always @(posedge clk_i,negedge rst_ni)
-    if      (!rst_ni          ) ireq_o <= 1'b0;
-    else if ( pr > threshold_i) ireq_o <= 1'b1;
-    else                        ireq_o <= 1'b0;
+   always @(posedge clk_i, negedge rst_ni)
+      if (!rst_ni) ireq_o <= 1'b0;
+      else if (pr > threshold_i) ireq_o <= 1'b1;
+      else ireq_o <= 1'b0;
 
-  always @(posedge clk_i)
-    id_o <= id;
+   always @(posedge clk_i) id_o <= id;
 
 endmodule : plic_target

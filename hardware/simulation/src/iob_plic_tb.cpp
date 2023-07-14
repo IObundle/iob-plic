@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "Viob_plic_top.h"
+#include "Viob_plic_sim_wrapper.h"
 #include "verilated.h"
 #include "verilated_vcd_c.h"
 
@@ -41,7 +41,7 @@
 
 vluint64_t main_time = 0;
 VerilatedVcdC* tfp = NULL;
-Viob_plic_top* dut = NULL;
+Viob_plic_sim_wrapper* dut = NULL;
 
 void init_set_regs();
 int test_simple_target_source();
@@ -54,7 +54,7 @@ double sc_time_stamp(){
 void Timer(unsigned int ns){
   for(int i = 0; i<ns; i++){
     if(!(main_time%(CLK_PERIOD/2))){
-      dut->clk = !(dut->clk);
+      dut->clk_i = !(dut->clk_i);
     }
     main_time += 1;
     dut->eval();
@@ -62,26 +62,33 @@ void Timer(unsigned int ns){
 }
 
 int wait_responce(){
-  while(dut->ready != 1){
+  while(dut->iob_ready != 1){
     Timer(CLK_PERIOD);
   }
-  return dut->rdata;
+  return dut->iob_rdata;
+}
+
+void write_success(){
+  FILE* fd = 0;
+  fd = fopen("test.log", "w");
+  fprintf(fd, "Test passed!");
+  fclose(fd);
 }
 
 int set_inputs(int address, int data, int strb){
-  dut->valid = 1;
-  dut->address = address;
-  dut->wdata = data;
-  dut->wstrb = strb;
+  dut->iob_avalid = 1;
+  dut->iob_addr = address;
+  dut->iob_wdata = data;
+  dut->iob_wstrb = strb;
   Timer(CLK_PERIOD);
-  dut->valid = 0;
+  dut->iob_avalid = 0;
   return wait_responce();
 }
 
 int main(int argc, char **argv, char **env){
   Verilated::commandArgs(argc, argv);
   Verilated::traceEverOn(true);
-  dut = new Viob_plic_top;
+  dut = new Viob_plic_sim_wrapper;
   int errors;
   main_time = 0;
 
@@ -92,22 +99,21 @@ int main(int argc, char **argv, char **env){
 #endif
   dut->eval();
 
-  dut->clk = 0;
-  dut->rst = 0;
-  dut->valid = 0;
-  dut->address = 0;
-  dut->wdata = 0;
-  dut->wstrb = 0;
-  dut->wstrb = 0;
+  dut->clk_i = 0;
+  dut->arst_i = 0;
+  dut->iob_avalid = 0;
+  dut->iob_addr = 0;
+  dut->iob_wdata = 0;
+  dut->iob_wstrb = 0;
   dut->srip = 0;
 
   printf("\nTestbench started!\n\n");
 
   // Reset sequence
   Timer(CLK_PERIOD);
-  dut->rst = !(dut->rst);
+  dut->arst_i = !(dut->arst_i);
   Timer(CLK_PERIOD);
-  dut->rst = !(dut->rst);
+  dut->arst_i = !(dut->arst_i);
 
   init_set_regs();
   errors = test_simple_target_source();
@@ -122,6 +128,7 @@ int main(int argc, char **argv, char **env){
   delete dut;
   dut = NULL;
   printf("Number of errors: %d\n", errors);
+  if(!errors) write_success();
   exit(0);
 
 }

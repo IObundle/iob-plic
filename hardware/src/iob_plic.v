@@ -1,163 +1,158 @@
 `timescale 1ns / 1ps
 
+`include "iob_lib.vh"
+`include "iob_plic_conf.vh"
+
 module iob_plic #(
-  //IOb-bus Parameters
-  parameter ADDR_W   = 16,
-  parameter DATA_W   = 32,
-
-  //PLIC Parameters
-  parameter SOURCES           = 64,//35,  //Number of interrupt sources
-  parameter TARGETS           = 4,   //Number of interrupt targets
-  parameter PRIORITIES        = 8,   //Number of Priority levels
-  parameter MAX_PENDING_COUNT = 8,   //Max. number of 'pending' events
-  parameter HAS_THRESHOLD     = 1,   //Is 'threshold' implemented?
-  parameter HAS_CONFIG_REG    = 1    //Is the 'configuration' register implemented?
-)
-(
-  input                   clk,
-  input                   rst,
-  
-  input                   valid,
-  input [ADDR_W     -1:0] address,
-  input [DATA_W     -1:0] wdata,
-  input [DATA_W/8   -1:0] wstrb,
-  output reg [DATA_W-1:0] rdata,
-  output reg              ready,
-
-  input  [SOURCES   -1:0] src,       //Interrupt sources
-  output [TARGETS   -1:0] irq        //Interrupt Requests
+   `include "iob_plic_params.vs"
+) (
+   `include "iob_plic_io.vs"
 );
 
-  //////////////////////////////////////////////////////////////////
-  //
-  // Constants
-  //
+   //////////////////////////////////////////////////////////////////
+   //
+   // Constants
+   //
 
-  localparam SOURCES_BITS  = $clog2(SOURCES+1);  //0=reserved
-  localparam PRIORITY_BITS = $clog2(PRIORITIES);
+   localparam SOURCES_BITS = $clog2(N_SOURCES + 1);  //0=reserved
+   localparam PRIORITY_BITS = $clog2(PRIORITIES);
 
 
-/** Address map
+   /** Address map
  * Configuration (if implemented)
  * GateWay control
- *   [SOURCES      -1:0] el
- *   [PRIORITY_BITS-1:0] priority  [SOURCES]
+ *   [N_SOURCES      -1:0] el
+ *   [PRIORITY_BITS-1:0] priority  [N_SOURCES]
  *
  * PLIC-Core
- *   [SOURCES      -1:0] ie        [TARGETS]
- *   [PRIORITY_BITS-1:0] threshold [TARGETS] (if implemented)
+ *   [N_SOURCES      -1:0] ie        [N_TARGETS]
+ *   [PRIORITY_BITS-1:0] threshold [N_TARGETS] (if implemented)
  *
  * Target
- *   [SOURCES_BITS -1:0] id        [TARGETS]
+ *   [N_SOURCES_BITS -1:0] id        [N_TARGETS]
  */
 
-  //////////////////////////////////////////////////////////////////
-  //
-  // Variables
-  //
+   //////////////////////////////////////////////////////////////////
+   //
+   // Variables
+   //
 
-  //IOb-bus write action
-  wire                     iob_we;
-  wire                     iob_re;
+   //IOb-bus write action
+   wire                       iob_write;
+   wire                       iob_we;
+   wire                       iob_re;
 
-  //Decoded registers
-  wire [SOURCES      -1:0] el;
-  wire [SOURCES      -1:0] ip;
-  wire [PRIORITY_BITS-1:0] p  [SOURCES];
-  wire [SOURCES      -1:0] ie [TARGETS];
-  wire [PRIORITY_BITS-1:0] th [TARGETS];
-  wire [SOURCES_BITS -1:0] id [TARGETS];
+   //Decoded registers
+   wire [N_SOURCES      -1:0] el;
+   wire [N_SOURCES      -1:0] ip;
+   wire [  PRIORITY_BITS-1:0] p         [N_SOURCES];
+   wire [N_SOURCES      -1:0] ie        [N_TARGETS];
+   wire [  PRIORITY_BITS-1:0] th        [N_TARGETS];
+   wire [  SOURCES_BITS -1:0] id        [N_TARGETS];
 
-  wire [TARGETS      -1:0] claim;
-  wire [TARGETS      -1:0] complete;
-
-
-  //////////////////////////////////////////////////////////////////
-  //
-  // Module Body
-  //
+   wire [N_TARGETS      -1:0] claim;
+   wire [N_TARGETS      -1:0] complete;
 
 
-  /** IOb-bus accesses */
-  //The core supports zero-wait state accesses on all transfers.
-  always @(posedge clk, posedge rst) begin
-      if (rst) begin
-        ready <= 1'b0;
-      end else begin
-        ready <= valid;
-      end
-   end  //always ready after a valid
-  //assign err = 1'b0;  //Never an error; Not needed??
+   //////////////////////////////////////////////////////////////////
+   //
+   // Module Body
+   //
+
+   /** APB Read/Write */
+   assign iob_write = |iob_wstrb_i;
+   assign iob_re    = iob_avalid_i & ~iob_write;
+   assign iob_we    = iob_avalid_i & iob_write;
 
 
-  /** APB Read/Write */
-  assign iob_re = valid & ~{|wstrb};
-  assign iob_we = valid &  {|wstrb};
+   // Module intanciation
+   // // Interface Registers
+   // // // Read data valid
+   iob_reg_re #(
+      .DATA_W (1),
+      .RST_VAL(0)
+   ) iob_reg_rvalid (
+      .clk_i (clk_i),
+      .arst_i(arst_i),
+      .cke_i (cke_i),
+      .rst_i (1'b0),
+      .en_i  (~iob_write),
+      .data_i(iob_avalid_i),
+      .data_o(iob_rvalid_o)
+   );
+   // // // Ready signal, is always 1 since the read and write to the CLINT only take one clock cycle.
+   iob_reg_re #(
+      .DATA_W (1),
+      .RST_VAL(0)
+   ) iob_reg_ready (
+      .clk_i (clk_i),
+      .arst_i(arst_i),
+      .cke_i (cke_i),
+      .rst_i (1'b0),
+      .en_i  (1'b1),
+      .data_i(1'b1),
+      .data_o(iob_ready_o)
+   );
 
-
-  /** Hookup Dynamic Register block
+   /** Hookup Dynamic Register block
    */
-  plic_dynamic_registers #(
-    //Bus Interface Parameters
-    .ADDR_SIZE  ( ADDR_W ),
-    .DATA_SIZE  ( DATA_W ),
+   plic_dynamic_registers #(
+      //Bus Interface Parameters
+      .ADDR_SIZE(ADDR_W),
+      .DATA_SIZE(DATA_W),
 
-    //PLIC Parameters
-    .SOURCES           ( SOURCES           ),
-    .TARGETS           ( TARGETS           ),
-    .PRIORITIES        ( PRIORITIES        ),
-    .MAX_PENDING_COUNT ( MAX_PENDING_COUNT ),
-    .HAS_THRESHOLD     ( HAS_THRESHOLD     ),
-    .HAS_CONFIG_REG    ( HAS_CONFIG_REG    )
-  )
-  dyn_register_inst (
-    .rst_n    ( ~rst     ), //Active low asynchronous reset
-    .clk      ( clk      ), //System clock
+      //PLIC Parameters
+      .SOURCES          (N_SOURCES),
+      .TARGETS          (N_TARGETS),
+      .PRIORITIES       (PRIORITIES),
+      .MAX_PENDING_COUNT(MAX_PENDING_COUNT),
+      .HAS_THRESHOLD    (HAS_THRESHOLD),
+      .HAS_CONFIG_REG   (HAS_CONFIG_REG)
+   ) dyn_register_inst (
+      .rst_n(~arst_i),  //Active low asynchronous reset
+      .clk  (clk_i),    //System clock
 
-    .we       ( iob_we   ), //write cycle
-    .re       ( iob_re   ), //read cycle
-    .be       ( wstrb    ), //STRB=byte-enables
-    .waddr    ( address  ), //write address
-    .raddr    ( address  ), //read address
-    .wdata    ( wdata    ), //write data
-    .rdata    ( rdata    ), //read data
+      .we   (iob_we),       //write cycle
+      .re   (iob_re),       //read cycle
+      .be   (iob_wstrb_i),  //STRB=byte-enables
+      .waddr(iob_addr_i),   //write address
+      .raddr(iob_addr_i),   //read address
+      .wdata(iob_wdata_i),  //write data
+      .rdata(iob_rdata_o),  //read data
 
-    .el       ( el       ), //Edge/Level
-    .ip       ( ip       ), //Interrupt Pending
-
-    .ie       ( ie       ), //Interrupt Enable
-    .p        ( p        ), //Priority
-    .th       ( th       ), //Priority Threshold
-
-    .id       ( id       ), //Interrupt ID
-    .claim    ( claim    ), //Interrupt Claim
-    .complete ( complete )  //Interrupt Complete
- );
+      .el      (el),       //Edge/Level
+      .ip      (ip),       //Interrupt Pending
+      .ie      (ie),       //Interrupt Enable
+      .p       (p),        //Priority
+      .th      (th),       //Priority Threshold
+      .id      (id),       //Interrupt ID
+      .claim   (claim),    //Interrupt Claim
+      .complete(complete)  //Interrupt Complete
+   );
 
 
-  /** Hookup PLIC Core
+   /** Hookup PLIC Core
    */
-  plic_core #(
-    .SOURCES           ( SOURCES           ),
-    .TARGETS           ( TARGETS           ),
-    .PRIORITIES        ( PRIORITIES        ),
-    .MAX_PENDING_COUNT ( MAX_PENDING_COUNT )
-  )
-  plic_core_inst (
-    .rst_n     ( ~rst    ),
-    .clk       ( clk     ),
+   plic_core #(
+      .SOURCES          (N_SOURCES),
+      .TARGETS          (N_TARGETS),
+      .PRIORITIES       (PRIORITIES),
+      .MAX_PENDING_COUNT(MAX_PENDING_COUNT)
+   ) plic_core_inst (
+      .rst_n(~arst_i),
+      .clk  (clk_i),
 
-    .src       ( src      ),
-    .el        ( el       ),
-    .ip        ( ip       ),
-    .ie        ( ie       ),
-    .ipriority ( p        ),
-    .threshold ( th       ),
+      .src      (src),
+      .el       (el),
+      .ip       (ip),
+      .ie       (ie),
+      .ipriority(p),
+      .threshold(th),
 
-    .ireq      ( irq      ),
-    .id        ( id       ),
-    .claim     ( claim    ),
-    .complete  ( complete )
-  );
+      .ireq    (irq),
+      .id      (id),
+      .claim   (claim),
+      .complete(complete)
+   );
 
 endmodule
