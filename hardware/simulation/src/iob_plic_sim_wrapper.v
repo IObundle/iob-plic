@@ -48,7 +48,7 @@ module iob_plic_sim_wrapper #(
       .src(srip),
       .irq(meip),
 
-      `include "clk_en_rst_portmap.vs"
+      `include "clk_en_rst_s_s_portmap.vs"
    );
 
 endmodule
