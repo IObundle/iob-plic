@@ -168,7 +168,7 @@ class iob_plic(iob_module):
                         "rst_val": 0,
                         "addr": 0x8000,
                         "log2n_items": 0,
-                        "autologic": False,
+                        "autoreg": False,
                         "descr": "Dummy Register",
                     },
                 ],
