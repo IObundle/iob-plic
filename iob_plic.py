@@ -169,7 +169,7 @@ def setup(py_params_dict):
                         "n_bits": 1,
                         "rst_val": 0,
                         "log2n_items": 0,
-                        #"addr": 0x8000,
+                        # "addr": 0x8000,
                     },
                 ],
                 "csr_if": "iob",
