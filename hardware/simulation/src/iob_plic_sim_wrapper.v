@@ -43,12 +43,12 @@ module iob_plic_sim_wrapper #(
       .HAS_THRESHOLD    (1),
       .HAS_CONFIG_REG   (1)
    ) plic_ut (
-      `include "iob_s_portmap.vs"
+       `include "iob_plic_iob_s_portmap.vs"
 
-      .src(srip),
-      .irq(meip),
+       .src(srip),
+       .irq(meip),
 
-      `include "clk_en_rst_s_s_portmap.vs"
+       `include "iob_plic_iob_s_portmap.vs"
    );
 
 endmodule
