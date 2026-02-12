@@ -102,7 +102,6 @@ def setup(py_params_dict):
                 "name": "plic_io",
                 "descr": "",
                 "signals": [
-                    # {'name':'interrupt_o', 'width':'1', 'descr':'be done'},
                     {
                         "name": "src_i",
                         "descr": "Interrupt sources",
@@ -120,7 +119,7 @@ def setup(py_params_dict):
                 "descr": f"Control and status interface, when selecting the {IF_DISPLAY_NAME[CSR_IF]} CSR interface.",
                 "signals": {
                     "type": CSR_IF,
-                    "ADDR_W": 5,
+                    "ADDR_W": 22,
                     "DATA_W": 32,
                     "STRB_W": 4,
                 },
@@ -141,10 +140,10 @@ def setup(py_params_dict):
                     # Decoded registers
                     {"name": "el", "width": "N_SOURCES"},
                     {"name": "ip", "width": "N_SOURCES"},
-                    {"name": "p", "width": "PRIORITY_BITS*N_SOURCES"},
+                    {"name": "p", "width": "N_SOURCES*PRIORITY_BITS"},
                     {"name": "ie", "width": "N_TARGETS*N_SOURCES"},
-                    {"name": "th", "width": "PRIORITY_BITS*N_TARGETS"},
-                    {"name": "id", "width": "SOURCES_BITS*N_TARGETS"},
+                    {"name": "th", "width": "N_TARGETS*PRIORITY_BITS"},
+                    {"name": "id", "width": "N_TARGETS*SOURCES_BITS"},
                     #
                     {"name": "claim", "width": "N_TARGETS"},
                     {"name": "complete", "width": "N_TARGETS"},
@@ -197,8 +196,8 @@ def setup(py_params_dict):
 
    /** APB Read/Write */
    assign iob_write = |iob_wstrb_i;
-   assign iob_re    = iob_avalid_i & ~iob_write;
-   assign iob_we    = iob_avalid_i & iob_write;
+   assign iob_re    = iob_valid_i & ~iob_write;
+   assign iob_we    = iob_valid_i & iob_write;
 
 
    // Module intanciation
@@ -251,14 +250,14 @@ def setup(py_params_dict):
       .rst_n(~arst_i),
       .clk  (clk_i),
 
-      .src      (src),
+      .src      (src_i),
       .el       (el),
       .ip       (ip),
       .ie       (ie),
       .ipriority(p),
       .threshold(th),
 
-      .ireq    (irq),
+      .ireq    (irq_o),
       .id      (id),
       .claim   (claim),
       .complete(complete)
@@ -276,7 +275,7 @@ def setup(py_params_dict):
     // Interface Registers
 
     iob_rvalid_o_en = ~iob_write;
-    iob_rvalid_o_nxt = iob_avalid_i;
+    iob_rvalid_o_nxt = iob_valid_i;
 
     // Ready signal, is always 1 since the read and write to the PLIC only take one clock cycle.
     iob_ready_o = 1'b1;

@@ -103,13 +103,13 @@ module plic_dynamic_registers #(
    output [SOURCES      -1:0] el,  //Edge/Level sensitive for each source
    input  [SOURCES      -1:0] ip,  //Interrupt Pending for each source
 
-   output     [SOURCES      -1:0] ie[TARGETS],  //Interrupt enable per source, for each target
-   output reg [PRIORITY_BITS-1:0] p [SOURCES],  //Priority for each source
-   output reg [PRIORITY_BITS-1:0] th[TARGETS],  //Priority Threshold for each target
+   output     [TARGETS*SOURCES      -1:0] ie,  //Interrupt enable per source, for each target
+   output reg [SOURCES*PRIORITY_BITS-1:0] p,   //Priority for each source
+   output reg [TARGETS*PRIORITY_BITS-1:0] th,  //Priority Threshold for each target
 
-   input      [SOURCES_BITS -1:0] id      [TARGETS],  //Interrupt ID for each target
-   output reg [TARGETS      -1:0] claim,              //Interrupt Claim
-   output reg [TARGETS      -1:0] complete            //Interrupt Complete
+   input      [TARGETS*SOURCES_BITS -1:0] id,       //Interrupt ID for each target
+   output reg [        TARGETS      -1:0] claim,    //Interrupt Claim
+   output reg [        TARGETS      -1:0] complete  //Interrupt Complete
 );
 
    //////////////////////////////////////////////////////////////////
@@ -339,10 +339,10 @@ module plic_dynamic_registers #(
       //move PRIORITY fields into bit-positions
       if ((r + 1) * PRIORITY_FIELDS_PER_REG <= SOURCES)
          for (int n = 0; n < PRIORITY_FIELDS_PER_REG; n++)
-            encode_p |= p[r*PRIORITY_FIELDS_PER_REG+n] << (n * PRIORITY_NIBBLES * 4);
+            encode_p |= p[(r*PRIORITY_FIELDS_PER_REG+n)*PRIORITY_BITS+:PRIORITY_BITS] << (n * PRIORITY_NIBBLES * 4);
       else
          for (int n = 0; n < SOURCES % PRIORITY_FIELDS_PER_REG; n++)
-            encode_p |= p[r*PRIORITY_FIELDS_PER_REG+n] << (n * PRIORITY_NIBBLES * 4);
+            encode_p |= p[(r*PRIORITY_FIELDS_PER_REG+n)*PRIORITY_BITS+:PRIORITY_BITS] << (n * PRIORITY_NIBBLES * 4);
    endfunction : encode_p
 
 
@@ -371,10 +371,10 @@ module plic_dynamic_registers #(
       //move THRESHOLD fields into bit-positions
       if ((r + 1) * PRIORITY_FIELDS_PER_REG <= TARGETS)
          for (int n = 0; n < PRIORITY_FIELDS_PER_REG; n++)
-            encode_th |= p[r*PRIORITY_FIELDS_PER_REG+n] << (n * PRIORITY_NIBBLES * 4);
+            encode_th |= p[(r*PRIORITY_FIELDS_PER_REG+n)*PRIORITY_BITS+:PRIORITY_BITS] << (n * PRIORITY_NIBBLES * 4);
       else
          for (int n = 0; n < TARGETS % PRIORITY_FIELDS_PER_REG; n++)
-            encode_th |= p[r*PRIORITY_FIELDS_PER_REG+n] << (n * PRIORITY_NIBBLES * 4);
+            encode_th |= p[(r*PRIORITY_FIELDS_PER_REG+n)*PRIORITY_BITS+:PRIORITY_BITS] << (n * PRIORITY_NIBBLES * 4);
    endfunction : encode_th
 
 
@@ -618,13 +618,13 @@ module plic_dynamic_registers #(
                       s < (register_idx(r) + 1) * PRIORITY_FIELDS_PER_REG;
                       s++
                   ) begin : decode_p0
-                     always_comb p[s] = decode_p(r, s);
+                     always_comb p[s*PRIORITY_BITS+:PRIORITY_BITS] = decode_p(r, s);
                   end
                else
                   for (
                       s = register_idx(r) * PRIORITY_FIELDS_PER_REG; s < SOURCES; s++
                   ) begin : decode_p1
-                     always_comb p[s] = decode_p(r, s);
+                     always_comb p[s*PRIORITY_BITS+:PRIORITY_BITS] = decode_p(r, s);
                   end
             end
 
@@ -634,15 +634,17 @@ module plic_dynamic_registers #(
             //  TARGET starting at a new register
             IE: begin : g_ie_regs
                if (((register_idx(r) % EL_REGS) + 1) * DATA_SIZE <= SOURCES)
-                  assign ie[register_idx(
+                  assign ie[(register_idx(
                       r
-                  )/EL_REGS][(register_idx(
+                  )/EL_REGS)*SOURCES+(register_idx(
                       r
                   )%EL_REGS)*DATA_SIZE+:DATA_SIZE] = registers[r];
                else
-                  assign ie[register_idx(
+                  assign ie[(register_idx(
                       r
-                  )/EL_REGS][SOURCES-1 : (register_idx(
+                  )/EL_REGS)*SOURCES+SOURCES-1:(register_idx(
+                      r
+                  )/EL_REGS)*SOURCES+(register_idx(
                       r
                   )%EL_REGS)*DATA_SIZE] = registers[r];
             end
@@ -664,7 +666,7 @@ module plic_dynamic_registers #(
                                    logic [DATA_SIZE-1:0] tmp;  //local variable
                                    tmp   = registers[r];
                                    tmp   = tmp >> (t * PRIORITY_NIBBLES);
-                                   th[t] = tmp[PRIORITY_BITS-1:0];
+                                   th[t*PRIORITY_BITS+:PRIORITY_BITS] = tmp[PRIORITY_BITS-1:0];
                                end
                            end
                          else
@@ -677,7 +679,7 @@ module plic_dynamic_registers #(
                                    logic [DATA_SIZE-1:0] tmp;  //local variable
                                    tmp   = registers[r];
                                    tmp   = tmp >> (t * PRIORITY_NIBBLES);
-                                   th[t] = tmp[PRIORITY_BITS-1:0];
+                                   th[t*PRIORITY_BITS+:PRIORITY_BITS] = tmp[PRIORITY_BITS-1:0];
                                end
                            end
                      end
@@ -685,7 +687,9 @@ module plic_dynamic_registers #(
 
             THRESHOLD:
             if (HAS_THRESHOLD) begin : g_threshold_regs
-               assign th[register_idx(r)] = registers[r][PRIORITY_BITS-1:0];
+               assign th[register_idx(
+                   r
+               )*PRIORITY_BITS+:PRIORITY_BITS] = registers[r][PRIORITY_BITS-1:0];
             end
          endcase
       end
@@ -707,10 +711,11 @@ module plic_dynamic_registers #(
             EL: rdata <= el >> (read_register_idx * DATA_SIZE);
             PRIORITY: rdata <= encode_p(read_register_idx);
             IE:
-            rdata <= ie[read_register_idx/EL_REGS] >> ((read_register_idx % EL_REGS) * DATA_SIZE);
+            rdata <= ie[(read_register_idx/EL_REGS)*SOURCES+:SOURCES] >> ((read_register_idx % EL_REGS) * DATA_SIZE);
             //      THRESHOLD: if (HAS_THRESHOLD) rdata <= encode_th(read_register_idx);
-            THRESHOLD: if (HAS_THRESHOLD) rdata <= th[read_register_idx];
-            ID: rdata <= id[read_register_idx];
+            THRESHOLD:
+            if (HAS_THRESHOLD) rdata <= th[read_register_idx*PRIORITY_BITS+:PRIORITY_BITS];
+            ID: rdata <= id[read_register_idx*SOURCES_BITS+:SOURCES_BITS];
             default: ;
          endcase
 

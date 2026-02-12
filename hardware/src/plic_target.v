@@ -76,8 +76,8 @@ module plic_target #(
    input rst_ni,  //Active low asynchronous reset
    clk_i,  //System clock
 
-   input [SOURCES_BITS -1:0] id_i      [SOURCES],  //Interrupt source
-   input [PRIORITY_BITS-1:0] priority_i[SOURCES],  //Interrupt Priority
+   input [SOURCES*SOURCES_BITS -1:0] id_i,       //Interrupt source
+   input [SOURCES*PRIORITY_BITS-1:0] priority_i, //Interrupt Priority
 
    input [PRIORITY_BITS-1:0] threshold_i,  //Interrupt Priority Threshold
 
@@ -94,8 +94,8 @@ module plic_target #(
    //
    // Variables
    //
-   logic [SOURCES_BITS -1:0] id;
-   logic [PRIORITY_BITS-1:0] pr;
+   wire [SOURCES_BITS -1:0] id;
+   wire [PRIORITY_BITS-1:0] pr;
 
 
    //////////////////////////////////////////////////////////////////
@@ -111,10 +111,10 @@ module plic_target #(
       .HI        (SOURCES - 1),
       .LO        (0)
    ) priority_index_tree (
-      .priority_i(priority_i),
-      .idx_i     (id_i),
-      .priority_o(pr),
-      .idx_o     (id)
+       .priority_i(priority_i),
+       .idx_i     (id_i),
+       .priority_o(pr),
+       .idx_o     (id)
    );
 
 

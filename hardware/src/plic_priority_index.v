@@ -76,10 +76,10 @@ module plic_priority_index #(
    parameter SOURCES_BITS  = $clog2(SOURCES + 1),  //0=reserved
    parameter PRIORITY_BITS = $clog2(PRIORITIES)
 ) (
-   input  [PRIORITY_BITS-1:0] priority_i[SOURCES],  //Interrupt Priority
-   input  [SOURCES_BITS -1:0] idx_i     [SOURCES],
-   output [PRIORITY_BITS-1:0] priority_o,
-   output [SOURCES_BITS -1:0] idx_o
+   input  [SOURCES*PRIORITY_BITS-1:0] priority_i,  //Interrupt Priority
+   input  [SOURCES*SOURCES_BITS -1:0] idx_i,
+   output [        PRIORITY_BITS-1:0] priority_o,
+   output [        SOURCES_BITS -1:0] idx_o
 );
 
    //////////////////////////////////////////////////////////////////
@@ -87,8 +87,8 @@ module plic_priority_index #(
    // Variables
    //
 
-   logic [PRIORITY_BITS-1:0] priority_hi, priority_lo;
-   logic [SOURCES_BITS -1:0] idx_hi, idx_lo;
+   wire [PRIORITY_BITS-1:0] priority_hi, priority_lo;
+   wire [SOURCES_BITS -1:0] idx_hi, idx_lo;
 
    //initial if (HI-LO>1) $display ("HI=%0d, LO=%0d -> hi(%0d,%0d) lo(%0d,%0d)", HI, LO, HI, HI-(HI-LO)/2, LO+(HI-LO)/2, LO);
 
@@ -105,10 +105,10 @@ module plic_priority_index #(
             .HI        (LO + (HI - LO) / 2),
             .LO        (LO)
          ) lo (
-            .priority_i(priority_i),
-            .idx_i     (idx_i),
-            .priority_o(priority_lo),
-            .idx_o     (idx_lo)
+             .priority_i(priority_i),
+             .idx_i     (idx_i),
+             .priority_o(priority_lo),
+             .idx_o     (idx_lo)
          );
 
          plic_priority_index #(
@@ -117,16 +117,16 @@ module plic_priority_index #(
             .HI        (HI),
             .LO        (HI - (HI - LO) / 2)
          ) hi (
-            .priority_i(priority_i),
-            .idx_i     (idx_i),
-            .priority_o(priority_hi),
-            .idx_o     (idx_hi)
+             .priority_i(priority_i),
+             .idx_i     (idx_i),
+             .priority_o(priority_hi),
+             .idx_o     (idx_hi)
          );
       end else begin : g_low_priority
-         assign priority_lo = priority_i[LO];
-         assign priority_hi = priority_i[HI];
-         assign idx_lo      = idx_i[LO];
-         assign idx_hi      = idx_i[HI];
+         assign priority_lo = priority_i[LO*PRIORITY_BITS+:PRIORITY_BITS];
+         assign priority_hi = priority_i[HI*PRIORITY_BITS+:PRIORITY_BITS];
+         assign idx_lo      = idx_i[LO*SOURCES_BITS+:SOURCES_BITS];
+         assign idx_hi      = idx_i[HI*SOURCES_BITS+:SOURCES_BITS];
       end
    endgenerate
 

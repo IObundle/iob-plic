@@ -6,19 +6,12 @@ module iob_plic_sim_wrapper #(
    parameter N_SOURCES = 8,
    parameter N_TARGETS = 2
 ) (
-   input clk_i,
-   input arst_i,
+   `include "iob_plic_iob_clk_s_port.vs"
 
-   input  [         0:0] iob_avalid,
-   input  [  ADDR_W-1:0] iob_addr,
-   input  [  DATA_W-1:0] iob_wdata,
-   input  [DATA_W/8-1:0] iob_wstrb,
-   output [         0:0] iob_rvalid,
-   output [  DATA_W-1:0] iob_rdata,
-   output [         0:0] iob_ready,
+   `include "iob_plic_iob_s_port.vs"
 
-   input  [N_SOURCES-1:0] srip,
-   output [N_TARGETS-1:0] meip
+   input  [N_SOURCES-1:0] srip_i,
+   output [N_TARGETS-1:0] meip_o
 );
 
 `ifdef VCD
@@ -27,8 +20,6 @@ module iob_plic_sim_wrapper #(
       $dumpvars();
    end
 `endif
-
-   wire cke_i = 1'b1;
 
    iob_plic #(
       //IOb-bus Parameters
@@ -43,12 +34,12 @@ module iob_plic_sim_wrapper #(
       .HAS_THRESHOLD    (1),
       .HAS_CONFIG_REG   (1)
    ) plic_ut (
-       `include "iob_plic_iob_s_portmap.vs"
+       `include "iob_plic_iob_clk_s_s_portmap.vs"
 
-       .src(srip),
-       .irq(meip),
+       .src_i(srip_i),
+       .irq_o(meip_o),
 
-       `include "iob_plic_iob_s_portmap.vs"
+       `include "iob_plic_iob_s_s_portmap.vs"
    );
 
 endmodule

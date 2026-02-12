@@ -84,14 +84,14 @@ module plic_core #(
    el,  //Edge/Level sensitive for each source
    output [SOURCES      -1:0] ip,   //Interrupt Pending for each source
 
-   input [SOURCES      -1:0] ie[TARGETS],  //Interrupt enable per source, for each target
-   input  [PRIORITY_BITS-1:0] ipriority[SOURCES],  //Priority for each source (priority is a reserved keyword)
-   input [PRIORITY_BITS-1:0] threshold[TARGETS],  //Priority Threshold for each target
+   input [TARGETS*SOURCES      -1:0] ie,  //Interrupt enable per source, for each target
+   input  [SOURCES*PRIORITY_BITS-1:0] ipriority,  //Priority for each source (priority is a reserved keyword)
+   input [TARGETS*PRIORITY_BITS-1:0] threshold,  //Priority Threshold for each target
 
-   output [TARGETS      -1:0] ireq,               //Interrupt request for each target
-   output [SOURCES_BITS -1:0] id      [TARGETS],  //Interrupt ID (1..SOURCES), for each target
-   input  [TARGETS      -1:0] claim,              //Interrupt claim
-   input  [TARGETS      -1:0] complete            //Interrupt handling complete
+   output [        TARGETS      -1:0] ireq,     //Interrupt request for each target
+   output [TARGETS*SOURCES_BITS -1:0] id,       //Interrupt ID (1..SOURCES), for each target
+   input  [        TARGETS      -1:0] claim,    //Interrupt claim
+   input  [        TARGETS      -1:0] complete  //Interrupt handling complete
 );
    //////////////////////////////////////////////////////////////////
    //
@@ -99,12 +99,12 @@ module plic_core #(
    //
    genvar s, t;
 
-   logic [SOURCES_BITS -1:0] id_array      [TARGETS] [SOURCES];
-   logic [PRIORITY_BITS-1:0] pr_array      [TARGETS] [SOURCES];
+   wire [TARGETS*SOURCES*SOURCES_BITS -1:0] id_array;
+   wire [TARGETS*SOURCES*PRIORITY_BITS-1:0] pr_array;
 
-   logic [SOURCES_BITS -1:0] id_claimed    [TARGETS];
-   logic [TARGETS      -1:0] claim_array   [SOURCES];
-   logic [TARGETS      -1:0] complete_array[SOURCES];
+   reg  [        TARGETS*SOURCES_BITS -1:0] id_claimed;
+   wire [        SOURCES*TARGETS      -1:0] claim_array;
+   wire [        SOURCES*TARGETS      -1:0] complete_array;
 
 
    //////////////////////////////////////////////////////////////////
@@ -118,8 +118,8 @@ module plic_core #(
    generate
       for (s = 0; s < SOURCES; s++) begin : gen_claims_source_array
          for (t = 0; t < TARGETS; t++) begin : gen_claim_complete
-            assign claim_array[s][t]    = (id[t] == s + 1) ? claim[t] : 1'b0;
-            assign complete_array[s][t] = (id_claimed[t] == s + 1) ? complete[t] : 1'b0;
+            assign claim_array[s*TARGETS+t]    = (id[t*SOURCES_BITS+:SOURCES_BITS] == s + 1) ? claim[t] : 1'b0;
+            assign complete_array[s*TARGETS+t] = (id_claimed[t*SOURCES_BITS+:SOURCES_BITS] == s + 1) ? complete[t] : 1'b0;
          end
       end
    endgenerate
@@ -130,8 +130,9 @@ module plic_core #(
    generate
       for (t = 0; t < TARGETS; t++) begin : gen_id_claimed
          always @(posedge clk, negedge rst_n)
-            if (!rst_n) id_claimed[t] <= 'h0;
-            else if (claim[t]) id_claimed[t] <= id[t];
+            if (!rst_n) id_claimed[t*SOURCES_BITS+:SOURCES_BITS] <= 'h0;
+            else if (claim[t])
+               id_claimed[t*SOURCES_BITS+:SOURCES_BITS] <= id[t*SOURCES_BITS+:SOURCES_BITS];
       end
    endgenerate
 
@@ -143,13 +144,13 @@ module plic_core #(
    generate
       for (s = 0; s < SOURCES; s++) begin : gen_gateway
          plic_gateway #(MAX_PENDING_COUNT) gateway_inst (
-            .rst_n   (rst_n),
-            .clk     (clk),
-            .src     (src[s]),
-            .edge_lvl(el[s]),
-            .ip      (ip[s]),
-            .claim   (|claim_array[s]),
-            .complete(|complete_array[s])
+             .rst_n   (rst_n),
+             .clk     (clk),
+             .src     (src[s]),
+             .edge_lvl(el[s]),
+             .ip      (ip[s]),
+             .claim   (|claim_array[s*TARGETS+:TARGETS]),
+             .complete(|complete_array[s*TARGETS+:TARGETS])
          );
       end : gen_gateway
    endgenerate
@@ -168,13 +169,13 @@ module plic_core #(
                .SOURCES   (SOURCES),
                .PRIORITIES(PRIORITIES)
             ) cell_inst (
-               .rst_ni    (rst_n),
-               .clk_i     (clk),
-               .ip_i      (ip[s]),
-               .ie_i      (ie[t][s]),        //bitslice from packed array 'ie'
-               .priority_i(ipriority[s]),
-               .id_o      (id_array[t][s]),
-               .priority_o(pr_array[t][s])
+                .rst_ni(rst_n),
+                .clk_i(clk),
+                .ip_i(ip[s]),
+                .ie_i(ie[t*SOURCES+s]),  //bitslice from packed array 'ie'
+                .priority_i(ipriority[s*PRIORITY_BITS+:PRIORITY_BITS]),
+                .id_o(id_array[t*SOURCES*SOURCES_BITS+s*SOURCES_BITS+:SOURCES_BITS]),
+                .priority_o(pr_array[t*SOURCES*PRIORITY_BITS+s*PRIORITY_BITS+:PRIORITY_BITS])
             );
          end : gen_cell_source_array
       end : gen_cell_target_array
@@ -191,13 +192,13 @@ module plic_core #(
             .SOURCES   (SOURCES),
             .PRIORITIES(PRIORITIES)
          ) target_inst (
-            .rst_ni     (rst_n),
-            .clk_i      (clk),
-            .id_i       (id_array[t]),
-            .priority_i (pr_array[t]),
-            .threshold_i(threshold[t]),
-            .id_o       (id[t]),
-            .ireq_o     (ireq[t])
+             .rst_ni     (rst_n),
+             .clk_i      (clk),
+             .id_i       (id_array[t*SOURCES*SOURCES_BITS+:SOURCES*SOURCES_BITS]),
+             .priority_i (pr_array[t*SOURCES*PRIORITY_BITS+:SOURCES*PRIORITY_BITS]),
+             .threshold_i(threshold[t*PRIORITY_BITS+:PRIORITY_BITS]),
+             .id_o       (id[t*SOURCES_BITS+:SOURCES_BITS]),
+             .ireq_o     (ireq[t])
          );
       end : gen_target
    endgenerate
