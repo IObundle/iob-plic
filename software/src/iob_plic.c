@@ -1,6 +1,6 @@
 #include <stdint.h>
 
-#include "iob-plic.h"
+#include "iob_plic.h"
 #include "riscv-csr.h"
 
 void plic_init(int base_address) {
@@ -21,9 +21,11 @@ void plic_init(int base_address) {
   for (i = 0; i < PTHRESHOLD_REGS; i++)
     plic_write((TH_BASE_ADDRESS + i) * DATA_W / 8, 0);
 }
+
 void plic_write(int address, int data) {
   (*(volatile uint32_t *)(base + address)) = (uint32_t)(data);
 }
+
 int plic_read(int address) {
   return (uint64_t)(*(volatile uint32_t *)(base + address));
 }
@@ -37,6 +39,7 @@ int plic_enable_interrupt(int source) {
       1 << (source % DATA_W));
   return target;
 }
+
 int plic_disable_interrupt(int source) {
   int target;
   target = csr_read_mhartid();
@@ -46,13 +49,13 @@ int plic_disable_interrupt(int source) {
       0);
   return target;
 }
-/* Returns interrupt ID */
+
 int plic_claim_interrupt() {
   int target;
   target = csr_read_mhartid();
   return plic_read((ID_BASE_ADDRESS + target) * DATA_W / 8);
 }
-/* Sends complete signal to PLIC */
+
 void plic_complete_interrupt(int source_id) {
   int target;
   target = csr_read_mhartid();

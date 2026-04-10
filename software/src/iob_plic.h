@@ -3,7 +3,7 @@
 #define DATA_W 32
 
 #ifndef N_SOURCES
-#define N_SOURCES 32
+#define N_SOURCES 31
 #endif
 
 #ifndef N_TARGETS
@@ -55,13 +55,75 @@
 
 // Functions
 static int base;
-void plic_init(int);
-void plic_write(int, int);
-int plic_read(int);
 
-int plic_enable_interrupt(int);
-int plic_disable_interrupt(int);
+/**
+ * @brief Initializes the PLIC peripheral.
+ *
+ * This function sets the base address, clears Edge/Level (EL) registers,
+ * sets default priorities for all sources, clears Interrupt Enable (IE)
+ * registers, and sets thresholds to zero.
+ *
+ * @param base_address The base memory address of the PLIC.
+ */
+void plic_init(int base_address);
+
+/**
+ * @brief Writes a 32-bit value to a PLIC register.
+ *
+ * @param address The offset from the PLIC base address.
+ * @param data The 32-bit data to write.
+ */
+void plic_write(int address, int data);
+
+/**
+ * @brief Reads a 32-bit value from a PLIC register.
+ *
+ * @param address The offset from the PLIC base address.
+ * @return int The 32-bit value read from the register.
+ */
+int plic_read(int address);
+
+/**
+ * @brief Enables a specific interrupt source for the current hart.
+ *
+ * @param source The ID of the interrupt source to enable.
+ * @return int The hart ID (target) for which the interrupt was enabled.
+ */
+int plic_enable_interrupt(int source);
+
+/**
+ * @brief Disables a specific interrupt source for the current hart.
+ *
+ * @param source The ID of the interrupt source to disable.
+ * @return int The hart ID (target) for which the interrupt was disabled.
+ */
+int plic_disable_interrupt(int source);
+
+/**
+ * @brief Claims an interrupt from the PLIC for the current hart.
+ *
+ * This should be called inside the ISR to identify the highest priority
+ * pending interrupt.
+ *
+ * @return int The ID of the claimed interrupt source.
+ */
 int plic_claim_interrupt();
-void plic_complete_interrupt(int);
 
+/**
+ * @brief Signals the completion of an interrupt to the PLIC.
+ *
+ * This should be called after handling a claimed interrupt to allow
+ * the PLIC to dispatch new interrupts from the same source.
+ *
+ * @param source_id The ID of the interrupt source that was handled.
+ */
+void plic_complete_interrupt(int source_id);
+
+/**
+ * @brief Helper function to calculate the default priority register value.
+ *
+ * Constructs a word where each priority field is set to 1.
+ *
+ * @return int The packed priority value for a register.
+ */
 int write_pr_regs();
