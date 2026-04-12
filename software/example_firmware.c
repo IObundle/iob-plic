@@ -38,9 +38,9 @@ int main() {
   csr_set_bits_mstatus(MSTATUS_MIE_BIT_MASK);
 
   // Enable PLIC interrupt for UART
-  printf("Enabling external interrupt source 0 with ID = 1.\n");
+  printf("Enabling external interrupt source 1 with ID = 1.\n");
   int target;
-  target = plic_enable_interrupt(0);
+  target = plic_enable_interrupt(0, 1);
 
   printf("Exit...\n");
   uart_finish();
@@ -63,8 +63,8 @@ static void irq_entry(void) {
       int source_id = 0;
       source_id = plic_claim_interrupt();
       printf("External ID received was: %d.\n", source_id);
-      plic_complete_interrupt(source_id);
-      plic_disable_interrupt(source_id);
+      plic_complete_interrupt(0, source_id);
+      plic_disable_interrupt(0, source_id);
       break;
     }
   }
