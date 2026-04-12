@@ -22,11 +22,12 @@ A pre-built preliminary version of the IOb-PLIC user guide is available at [docu
 
 A preliminary version of the IOb-PLIC user guide can be generated using the following command:
 
-Generic information about RISC-V PLICs and their integration with linux is available in the [GENERIC\_PLIC\_INFO.md](/GENERIC_PLIC_INFO.md).
-
 ```bash
 make doc-build
 ```
+
+Generic information about PLICs and their integration with linux is available in the [GENERIC\_PLIC\_INFO.md](/GENERIC_PLIC_INFO.md).
+
 
 ## Features
 - **31 Interrupt Sources:** Supports up to 31 unique external interrupt signals.
