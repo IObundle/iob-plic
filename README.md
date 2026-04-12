@@ -18,11 +18,11 @@ An example of cleaning a previous build, creating a new build and simulating the
 
 ## Documentation
 
-Generic information about PLICs and their integration with linux is available in the [PLIC\_GUIDE.md](/PLIC_GUIDE.md).
-
 A pre-built preliminary version of the IOb-PLIC user guide is available at [document/ug.pdf](document/ug.pdf).
 
 A preliminary version of the IOb-PLIC user guide can be generated using the following command:
+
+Generic information about RISC-V PLICs and their integration with linux is available in the [GENERIC\_PLIC\_INFO.md](/GENERIC_PLIC_INFO.md).
 
 ```bash
 make doc-build
