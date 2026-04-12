@@ -87,3 +87,112 @@ In `interrupts-extended`:
 *   `9` corresponds to Supervisor External Interrupt (connected to `io_targets[1]`).
 
 > **Note:** If you are building a multi-core SoC where Linux runs only in S-mode across multiple Harts, you would need to increase `targetCount` to `2 * num_cores` and map them accordingly (Target 0=H0-M, 1=H0-S, 2=H1-M, 3=H1-S, etc.).
+
+---
+
+# PLIC, Linux `irq-sifive-plic`, and OpenSBI Interaction Guide
+
+## 1. Overview of OpenSBI on RISC‑V
+
+OpenSBI (RISC‑V Open Source Supervisor Binary Interface) is the standard firmware layer that sits below the operating system on RISC‑V platforms. Its main job is to:
+
+- Provide a **hardware‑abstraction layer** between the RISC‑V platform and the OS (Linux, Zephyr, etc.).
+- Implement the **RISC‑V SBI specification**, including:
+  - Machine‑timer setup (`sbi_set_timer`).
+  - Inter‑processor interrupts (IPIs) via `sbi_send_ipi`.
+  - CPU‑management functions (start/stop/suspend).
+  - System‑reset and other platform services.
+- Handle **boot‑time platform initialization** (e.g., PLIC, CLINT, UART).
+- **Not** expose arbitrary “peripheral‑control ecalls”; instead it focuses on **CPU‑centric services**, leaving most device drivers (UART, PLIC, GPIO, etc.) to live either in Linux itself or in platform‑specific firmware hooks.
+
+In other words, **OpenSBI touches peripherals only to the extent needed to set up time, interrupts, console, and boot flow**, not as a general device‑driver API.
+
+---
+
+## 2. The PLIC in RISC‑V
+
+The **Platform‑Level Interrupt Controller (PLIC)** is a memory‑mapped interrupt controller shared by all harts (CPUs) on a RISC‑V SoC. It:
+
+- Has multiple **interrupt sources** (devices: UART, timer, GPIO, Ethernet, etc.).
+- Has multiple **interrupt contexts** (one per hart per mode: often M‑context and S‑context for each CPU).
+- Each context exposes:
+  - `enable[N]` registers (enable/disable sources for that context).
+  - `priority[N]` (source priorities).
+  - `threshold` (minimum priority to deliver).
+  - `claim` / `complete` (take and ack an interrupt).
+
+External device interrupts can be routed to:
+
+- **M‑mode** (machine‑mode context, handled by firmware such as OpenSBI).
+- **S‑mode** (supervisor‑mode context, handled by Linux via `irq-sifive-plic`).
+
+---
+
+## 3. OpenSBI’s PLIC driver
+
+OpenSBI includes a **generic PLIC driver** that:
+
+- **Discovers** the PLIC base address from the device tree (if `FDT` is enabled).
+- **Writes PLIC‑specific registers** once at boot:
+  - Enables external interrupt sources for the contexts it wants to use.
+  - Sets initial thresholds and clears any pending interrupts.
+- **Handles M‑context PLIC IRQs**:
+  - If external interrupts are delivered to M‑mode (e.g., MEIP), OpenSBI runs the trap handler in M‑mode.
+  - OpenSBI can:
+    - Handle firmware‑internal IRQs (e.g., low‑level platform events).
+    - Delegate or forward certain IRQs into S‑mode if the platform uses `mideleg` for SEIP.
+- **Does not** normally expose PLIC‑source IRQs to Linux as a Linux‑level IRQchip; instead it prepares the PLIC so that Linux’s `irq-sifive-plic` can safely take over.
+
+In short: **OpenSBI’s PLIC role is initialization and M‑mode handling**, not per‑device IRQ dispatch.
+
+---
+
+## 4. Linux `irq-sifive-plic` driver
+
+Linux’s `irq-sifive-plic.c` is the **S‑mode PLIC IRQchip driver**. It:
+
+- **Uses the device tree** PLIC node and `interrupts-extended` to know which PLIC context corresponds to each CPU’s **S‑mode**:
+  ```dts
+  interrupts-extended = < &CPU0_intc 11 &CPU0_intc 9 >;
+  ```
+  - `11` → PLIC line 11 wired to **MEIP** (M‑mode).
+  - `9` → PLIC line 9 wired to **SEIP** (S‑mode).
+- **Ignores the M‑mode entries** (e.g., `11`) for its IRQ‑routing logic.
+- **Uses the S‑mode entries** (e.g., `9`) to:
+  - Determine which **PLIC context** (offsets in the PLIC register map) belongs to that CPU’s S‑mode.
+  - Read/write `enable`, `threshold`, `claim`, and `complete` for that S‑context.
+- **Exposes device IRQs** to Linux IRQ numbers, so UART, timer, Ethernet, etc., can register normal Linux IRQ handlers.
+
+Under a typical OpenSBI + Linux stack, **Linux never sees PLIC IRQs delivered to M‑mode**; it only sees those delivered to S‑mode contexts, and the PLIC driver is solely responsible for them.
+
+---
+
+## 5. End‑to‑end flow (M‑mode vs S‑mode IRQs)
+
+### Case A: M‑mode PLIC interrupt
+
+- An external device triggers an interrupt routed to the **M‑context** of a hart.
+- The CPU raises **MEIP**, enters **M‑mode trap**.
+- **OpenSBI’s PLIC handler**:
+  - Reads PLIC `claim` in the M‑context.
+  - Handles or forwards the event (e.g., platform firmware, logging, or delegation).
+- **Linux never sees this IRQ** as a standard device IRQ.
+
+### Case B: S‑mode PLIC interrupt
+
+- Device interrupt is routed to the **S‑context** of a hart.
+- `mideleg.SEIP = 1` so SEIP is delivered to **S‑mode**.
+- CPU jumps to **Linux S‑mode trap**.
+- Linux’s `irq-sifive-plic` driver:
+  - Reads `claim` from the S‑context.
+  - Maps the source number to a Linux IRQ.
+  - Invokes the device driver’s IRQ handler.
+- **OpenSBI is not involved** per‑IRQ; it only did the one‑time setup (PLIC, `mideleg`, SBI timer/IPI).
+
+---
+
+## 6. Practical takeaway
+
+- **OpenSBI**: firmware‑level PLIC initialization and M‑mode IRQ handling.
+- **`irq-sifive-plic`**: Linux‑level S‑mode IRQ dispatch; it uses `interrupts-extended` to know which PLIC context is S‑mode, and ignores M‑mode context mappings for normal device IRQs.
+- **Peripherals**: remain controlled by device‑specific drivers in Linux or firmware; SBI is CPU‑centric and does not expose generic “UART‑/GPIO‑control ecalls” for arbitrary devices.
