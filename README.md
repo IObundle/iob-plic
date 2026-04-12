@@ -14,10 +14,19 @@ The python-setup workflow allows to automatically generate verilog components us
 An example of cleaning a previous build, creating a new build and simulating the project is:
 - `make clean && make setup && make -C ../iob_plic_V0.10 sim-run`
 
+-->
+
 ## Documentation
 
-A generic PLIC guide is available at PLIC\_GUIDE.md
--->
+Generic information about PLICs and their integration with linux is available in the [PLIC\_GUIDE.md](/PLIC_GUIDE.md).
+
+A pre-built preliminary version of the IOb-PLIC user guide is available at [document/ug.pdf](document/ug.pdf).
+
+A preliminary version of the IOb-PLIC user guide can be generated using the following command:
+
+```bash
+make doc-build
+```
 
 ## Features
 - **31 Interrupt Sources:** Supports up to 31 unique external interrupt signals.
@@ -33,15 +42,13 @@ A generic PLIC guide is available at PLIC\_GUIDE.md
 - **OS Support:** Linux, FreeBSD, Zephyr, and various RTOS/Bare-metal environments.
 
 ## Interfaces
-The core provides the following top-level ports in the generated Verilog:
+The core provides the following top-level interfaces in the generated Verilog:
+- Clock, clock enable and reset interface.
+- Interrupt sources interface.
+- RISC-V interrupt interface.
+- Control and status register interface.
 
-| Port Name | Direction | Width | Description |
-|-----------|-----------|-------|-------------|
-| `clk` | Input | 1 | System clock |
-| `reset` | Input | 1 | Asynchronous active-low reset |
-| `sources` | Input | 31 | External interrupt lines (Active High) |
-| `targets` | Output | 2 | Interrupt signals to CPU (Target 0: M-Mode, Target 1: S-Mode) |
-| `s_axi_*` | Slave | - | AxiLite4 Bus Interface (32-bit data, 22-bit address) |
+More information about the interfaces can be found in the [IOb-PLIC user guide](document/ug.pdf).
 
 ### Memory Map (SiFive Compatible)
 | Base Offset | Register Name | Description |

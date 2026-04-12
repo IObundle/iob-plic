@@ -1,0 +1,3 @@
+[submodule "submodules/SpinalHDL"]
+	path = submodules/SpinalHDL
+	url = https://github.com/SpinalHDL/SpinalHDL.git

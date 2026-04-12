@@ -127,3 +127,19 @@ release-artifacts:
 	tar -czf $(CORE)_V$(VERSION).tar.gz -C ./fusesoc_exports .
 
 .PHONY: release-artifacts
+
+# SpinalHDL targets
+
+plic-core:
+	cp hardware/spinalhdl/PlicGenerator.scala submodules/SpinalHDL/lib/src/main/scala/PlicGenerator.scala
+	cd submodules/SpinalHDL && \
+	nix-shell ../../spinalhdl_shell.nix --run 'sbt "lib/runMain PlicGenerator"'
+	cp submodules/SpinalHDL/lib/gen/PlicVerilog.v hardware/src/PlicVerilog.v
+
+clean-plic-core:
+	rm hardware/src/PlicVerilog.v
+
+clean-submodules:
+	git submodule foreach --recursive git clean -ffdx
+
+.PHONY: plic-core clean-plic-core clean-submodules
