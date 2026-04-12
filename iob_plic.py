@@ -181,10 +181,9 @@ def setup(py_params_dict):
                         "mode": "RW",
                         "n_bits": 32,  # Only 2 bits used for priority, but set 32 to generate log2n_items array correctly.
                         "rst_val": 0,
-                        "log2n_items": 5, # 31 sources + 1 reserved
+                        "log2n_items": 5,  # 31 sources + 1 reserved
                         "descr": "Interrupt source priority. ID 0 is reserved. Source 1 starts at 0x4, Source 2 at 0x8, etc.",
                     },
-
                     # --- Pending Bits (Packed into 32-bit registers) ---
                     {
                         "name": "pending",
@@ -195,7 +194,6 @@ def setup(py_params_dict):
                         "log2n_items": 0,
                         "descr": "Interrupt pending bits. Bit [i] indicates if Source ID i is pending.",
                     },
-
                     # --- Target 0 (Machine Mode) Enables ---
                     {
                         "name": "target0_enable",
@@ -206,7 +204,6 @@ def setup(py_params_dict):
                         "log2n_items": 0,
                         "descr": "Interrupt enable bits for Target 0 (Context 0 - Machine Mode).",
                     },
-
                     # --- Target 1 (Supervisor Mode) Enables ---
                     {
                         "name": "target1_enable",
@@ -217,7 +214,6 @@ def setup(py_params_dict):
                         "log2n_items": 0,
                         "descr": "Interrupt enable bits for Target 1 (Context 1 - Supervisor Mode).",
                     },
-
                     # --- Target 0 (Machine Mode) Context Control ---
                     {
                         "name": "target0_threshold",
@@ -232,12 +228,11 @@ def setup(py_params_dict):
                         "name": "target0_claim_complete",
                         "addr": 0x200004,
                         "mode": "RW",
-                        "n_bits": 5, # log2(31 sources)
+                        "n_bits": 5,  # log2(31 sources)
                         "rst_val": 0,
                         "log2n_items": 0,
                         "descr": "Claim register when read, Complete register when written for Target 0.",
                     },
-
                     # --- Target 1 (Supervisor Mode) Context Control ---
                     {
                         "name": "target1_threshold",
@@ -252,7 +247,7 @@ def setup(py_params_dict):
                         "name": "target1_claim_complete",
                         "addr": 0x201004,
                         "mode": "RW",
-                        "n_bits": 5, # log2(31 sources)
+                        "n_bits": 5,  # log2(31 sources)
                         "rst_val": 0,
                         "log2n_items": 0,
                         "descr": "Claim register when read, Complete register when written for Target 1.",
