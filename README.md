@@ -1,14 +1,12 @@
-# IOb-SoC Platform-Level Interrupt Controller (PLIC)
+# IOb RISC-V PLIC (Platform Level Interrupt Controller)
 
 ## Overview
+This PLIC (Platform Level Interrupt Controller) core is a high-performance, parameterizable interrupt controller generated using **SpinalHDL** and **Py2HWSW**.
+It aggregates multiple interrupt sources and routes them to processor "targets" (Harts/Privilege modes) based on priority and threshold levels.
+This specific implementation is tailored for Linux-capable SoCs, like [SoCLinux](https://github.com/IObundle/soc-linux).
 
-This Core is an adaptation of the fully parameterized & programmable Platform Level Interrupt Controller (PLIC), developed by RoaLogic, for RISC-V based Processor Systems supporting a user-defined number of interrupt sources and targets. From RoaLogic this IP contains the PLIC core system verilog files. Besides that it has a verilog wrapper that initializes the PLIC core, the PLIC registers and creates the interface with the iob-soc internal buses. Furthermore, in hardware/include directory can be found the files that allow for the integration of the iob-plic has one of iob-soc peripherals.
- 
-The core supports a programmable number of simultaneous pending interrupt requests per source and individual routing of those interrupt requests to each target, full interrupt prioritisation of each interrupt source and separate enables per target via a matrix of interrupt enable bits.
-
-To reduce latency, the PLIC core presents all asserted interrupts to the target in priority order, queuing them so that a software interrupt handler can service all pending interrupts without the need to restore the interrupted context.
-
-## How to build the core w/ python-setup
+<!--
+## How to build the core with Py2HWSW
 The python-setup workflow allows to automatically generate verilog components used by the projects core Verilog. It allows to create bus interfaces with ease and use existing Verilog modules. To use python-setup the project should have a *project*_setup.py file in the root directory. The main commands to use the python-setup workflow are:
 - `make setup`: creates a build directory in the projects parent directory.
 - `make clean`: removes the build directory.
@@ -16,30 +14,59 @@ The python-setup workflow allows to automatically generate verilog components us
 An example of cleaning a previous build, creating a new build and simulating the project is:
 - `make clean && make setup && make -C ../iob_plic_V0.10 sim-run`
 
+-->
+
 ## Documentation
+
+A pre-built preliminary version of the IOb-PLIC user guide is available at [document/ug.pdf](document/ug.pdf).
+
+A preliminary version of the IOb-PLIC user guide can be generated using the following command:
+
+```bash
+make doc-build
+```
+
+Generic information about PLICs and their integration with linux is available in the [GENERIC\_PLIC\_INFO.md](/GENERIC_PLIC_INFO.md).
 
 
 ## Features
-
-- User defined number of Interrupt Sources & Targets
-- User defined priority level per Interrupt Source
-- Interrupt masking per target via Priority Threshold support
-- User defined Interrupt Pending queue depth per source
+- **31 Interrupt Sources:** Supports up to 31 unique external interrupt signals.
+- **2 Targets:** Configured for a single-core system with two privilege contexts (e.g., M-Mode and S-Mode).
+- **Programmable Priorities:** 2-bit priority width per interrupt source (Levels 0-3).
+- **Per-Target Thresholds:** Allows masking of interrupts below a specific priority level for each target.
+- **Claim/Complete Mechanism:** Atomic hardware-assisted interrupt identification and acknowledgement.
+- **SiFive Register Map:** Fully compatible with the standard SiFive PLIC register layout used by the Linux kernel.
 
 ## Compatibility
-
-Compliant to the [RISC-V Privilege Level 1.9, 1.9.1, 1.10 specifications](https://github.com/riscv/riscv-isa-manual/releases/tag/archive)
+- **Software:** Fully compatible with the standard RISC-V PLIC driver in the Linux kernel (`drivers/irqchip/irq-riscv-plic.c`).
+- **Hardware:** Designed for integration into RISC-V systems (e.g., VexRiscv, Rocket, or custom cores).
+- **OS Support:** Linux, FreeBSD, Zephyr, and various RTOS/Bare-metal environments.
 
 ## Interfaces
+The core provides the following top-level interfaces in the generated Verilog:
+- Clock, clock enable and reset interface.
+- Interrupt sources interface.
+- RISC-V interrupt interface.
+- Control and status register interface.
 
-- Dynamic Registers
+More information about the interfaces can be found in the [IOb-PLIC user guide](document/ug.pdf).
 
-The PLIC core implements Dynamic Registers, which means the registers and register mapping are automatically generated based on the parameters provided to the core. The core prints the register mapping during simulation (and for some tools during synthesis).
+### Memory Map (SiFive Compatible)
+| Base Offset | Register Name | Description |
+|-------------|---------------|-------------|
+| `0x000000` | `priority` | Source priority (4 bytes per source) |
+| `0x001000` | `pending` | Pending bit array (1 bit per source) |
+| `0x002000` | `enable` | Target 0 enables (1 bit per source) |
+| `0x002080` | `enable` | Target 1 enables (1 bit per source) |
+| `0x200000` | `threshold` | Target 0 priority threshold |
+| `0x200004` | `claim` | Target 0 claim/complete register |
+| `0x201000` | `threshold` | Target 1 priority threshold |
+| `0x201004` | `claim` | Target 1 claim/complete register |
 
 ## License
-
-Released under the RoaLogic [BSD License](/LICENSE.md)
+Released under [MIT](/LICENSE)
 
 ## References
-
--  RoaLogic plic : https://github.com/RoaLogic/plic
+- [RISC-V PLIC Specification](https://github.com/riscv/riscv-plic-spec)
+- [SpinalHDL Documentation: PLIC](https://spinalhdl.github.io/SpinalDoc-RTD/master/SpinalHDL/Libraries/Misc/PLIC/plic_mapper.html)
+- [SiFive Core Complex Manual (Reference Map)](https://sifive.cdn.prismic.io/sifive/9169d157-0d50-4005-a289-36c684de671b_e31_core_complex_manual_21G1.pdf)

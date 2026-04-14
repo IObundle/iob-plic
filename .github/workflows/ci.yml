@@ -30,6 +30,6 @@ jobs:
       - uses: actions/checkout@v3
         with:
           submodules: 'recursive'
-      - name: sim-test
-        run: nix-shell --run 'make clean && make setup && make -C ../iob_plic_V0.10/ sim-test'
+      - name: setup-test
+        run: nix-shell --run 'make clean && make setup'
         
