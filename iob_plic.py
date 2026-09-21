@@ -144,7 +144,7 @@ def setup(py_params_dict):
         #
         "subblocks": [
             {
-                "core_name": "iob_universal_converter",
+                "core": "iob_universal_converter",
                 "instance_name": "universal_converter",
                 "instance_description": "Convert CSRs interface into internal AXI-Lite bus",
                 "subordinate_if": CSR_IF,
@@ -160,7 +160,7 @@ def setup(py_params_dict):
                 },
             },
             {  # Currently only used for docs and Linux driver auto-generation. Does not affect hardware.
-                "core_name": "iob_csrs",
+                "core": "iob_csrs",
                 "instantiate": False,
                 "instance_name": "csrs",
                 "instance_description": "Control/Status Registers",
@@ -259,7 +259,7 @@ def setup(py_params_dict):
         "sw_modules": [
             # Software modules
             {
-                "core_name": "iob_linux_device_drivers",
+                "core": "iob_linux_device_drivers",
                 "compatible_str": "riscv,plic0",
                 # Extra device tree properties specific to this peripheral
                 "dts_extra_properties": r"""
